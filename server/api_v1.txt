@@ -1,0 +1,216 @@
+CS 121 Final Project API & Planning Document
+Author: Nick Church, nnchurch@ucsc.edu
+Date: 2016-03-23
+Version: 0.1
+
+##########
+# Models #
+##########
+    (information stored in db on server, can be accessed using our RESTful API):
+
+    user:
+        -email address
+            (unique, basically your username, what people will invite you with)
+        -auth token
+            (hashed password and username)
+        -name (nickname)
+            (first and last separate fields or not?)
+        -profile picture
+            (related field to images table, this is a stretch goal, along with all other picture related fields in other objects)
+
+    list:
+        -user_id for owner of list
+        -list name (e.g. "my family's shared shopping list")
+        -potentially a picture like a "cover photo" for a list, like a picture of your house if it's a shopping list for your house
+
+    list_item:
+        -list_id for the associated list object
+        -item text
+            (a string which could be "extra sharp cheddar",
+            or "please take out the trash before 6:00pm")
+        -a boolean status that represents done/purchased/completed
+        -an optional image of the item to be purchased
+            e.g.: if you want a specific kind of extra sharp cheddar, and you would like to give your friend/family member
+            a visual cue for the exact brand or kind you want.
+
+	list associations
+
+    -Beyond having a table for images which is rather simple, all we need to have are some relations defined in the db:
+        -a relation of user_id's to lists -- all user_id's associated with a list (including owner)
+        -a relation of user_id's to user_id's for who is "friends" with who
+        -a relation of list_item_id's to lists for which items belong to which list
+
+###############################
+# API - listed in JSON format #
+###############################
+    * except for logging in, all requests will need to be accompanied by an auth token *
+    * NOTE: these API paths can be assumed to handle all necessary permissions checking and
+    * data validation which the server will handle.
+
+@List paths
+    -get all of the lists you have access to:   // useful for loading a "main page" to display all of the lists a user has access to
+        path: $URL/lists/
+        POST: {auth_token: $auth_tok}
+        server response: the resulting HTTP status code and the JSON:
+            {result: $status, linkedlists: [{list_id, list_name, (and any other necessary fields, I don't think any more are
+            needed. Possibly a picture that is associated with the list)}, ...]}
+
+    -get a specific list:   // like specifying a specific chat in hangouts or something, allows you to go to an activity to manipulate that list
+        path: $URL/list/
+        POST: {auth_token: $auth_tok,
+               list_id: $id
+              }
+        server response:
+            {result: $status,
+             list:  {list_id: $id,
+                      list_name: $name,
+                      list_items:
+                        [{item_id: $id,
+                          item_text: $text,
+                          is_done: $is_done,
+                          picture: $picture_data // the picture is a bunch of binary data passed to the server, ideally this should be encrypted
+                         },
+                        ...]
+                     }
+            }
+
+    -add a user to one of your lists:
+        path: $URL/list/adduser
+        POST: {auth_token: $auth_tok,
+               list_id: $list_id,
+               user_id:
+               $user_id
+              }
+        server response: {result: $status}
+
+    -remove a user from one of your lists:
+        path: $URL/list/removeuser
+        POST: {auth_token: $auth_tok,
+               list_id: $list_id,
+               user_id: $user_id
+              }
+        server response: {result: $status}
+
+@List Item paths
+    -add an item to a list:
+        path: $URL/list/additemtolist/
+        POST: {auth_token: $auth_tok,
+               list_id: $id,
+               $item: {(item json goes here, as described above, in the server response from retreiving a list)}
+              }
+        server response:
+            {result: $status, // "ok" or something else if the request didn't go through -- let the user know what happened!
+             errors:
+                [{error: $errtext}, // error text such as form validation information (invalid username, username taken, invalid email address, etc.)
+                                    // if the result is "ok", there will be no errors returned
+                ...]                // ***NOTE***
+                                    // this is how errors in all responses will work below, the error section of the returned json will be left out,
+                                    // for the sake of brevity
+            }
+
+
+    -remove an item from a list:
+        path: $URL/list/removeitemfromlist/
+        POST: {auth_token: $auth_tok,
+               list_id: $list_id,
+               item_id: $item_id}
+        server response: {result: $status}
+
+    -update an item on a list:
+        path: $URL/list/updatelistitem/
+        POST: {auth_token: $auth_tok,
+               list_id: $list_id,
+               item: {item's json structure as described above in "get a specific list"}}
+        server response: {result: $status}
+
+
+@User paths
+    -create account:
+        path: $URL/user/createaccount
+        POST: {auth_token: $auth_tok,
+               user: {username: $username,
+               name: $name,
+               email_address: $email,
+               profile_pic: $picture_data},
+               authorization:
+                    {Here will be a JSON object of our authorization info depending on what method of encryption we go with,
+                    e.g. public/private key or google account, etc.}}
+        server response: {result: $status}
+
+    -update your account's information:
+        path: $URL/user/updateaccount
+        POST: {auth_token: $auth_tok,
+               user: {same as above, with changes made}
+              }
+        server response: {result: $status}
+
+    -get information about a specific user:
+        path: $URL/user/
+        POST: {auth_token: $auth_tok,
+               username: $username // (the username of the account you would like to view. must either be "friends" with the account or it must be your own)
+                                   // if it is your account, you can get back all of the information related to it, if it is someone else's
+                                   // you get back limited info about it (e.g. you want to view someone's profile)
+              }
+        server response:
+            {result: $status,
+             user:
+                {id: $id,
+                 username: $username,
+                 name: $name,
+                 email: $email,
+                 profile_pic: $picture
+                }
+            }
+
+    -get your friends list:
+        path: $URL/users/friends
+        POST: {auth_token: $auth_tok}
+        server response:
+            {result: $status,
+             friends_list:
+                [{user data as defined above by "get information about a specific user"},
+                ...]the
+            }
+
+    -add a user to your friends list:
+        path: $URL/users/addfriend
+        POST: {auth_token: $auth_tok,
+               friend_username: $username
+              }
+        server response: {result: $status}
+
+    -remove a user from your friends list:
+        path: $URL/users/removefriend
+        POST: {auth_token: $auth_tok,
+               friend_username: $username
+              }
+        server response: {result: $status}
+
+
+#####################################
+# General planning and future goals #
+#####################################
+
+-we could eventually do things like parse the list_item's strings for times and things like that, and use
+    a default reminder delta after which we could send the user a notification.
+    the reminder window could be manually altered by any user in the linked list though.
+
+        -ex: we have a list item with the string "please do X {before|after|by|at|...} 13:37"
+        for all users who are a member of this list and have notifications turned on we give them a
+        relative push notification. Say our default time delta is 30 minutes, and no one has touched notifications
+        for this list_item (enabled by default).
+            for example, if the string says "please do X before 13:37", we take the default time delta and push a
+            notification at $list_item_deadline - $delta, so 13:07, and if the modifier was "after" we could push
+            a notification at 14:07, and so on..
+
+-have the owner of the list be able to specify list permissions, there will be a default set of permissions each list starts with, but
+the owner can specify individual permissions as well.
+
+    users can have some combination of the following permissions:
+        item read access: (implied to always be true, otherwise what's the sense in being added to a list if you can't read it)
+
+        item create access: do you have permissions to add items to a list or not
+
+        item update access: could range from being able to update all fields of a list item to just being able to mark an item as completed
+
+        item destroy access: "admin" level permissions, originally only the owner has access but can modify another list member's permissions
