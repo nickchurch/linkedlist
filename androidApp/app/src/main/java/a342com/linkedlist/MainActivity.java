@@ -2,12 +2,14 @@ package a342com.linkedlist;
 
 import android.content.Context;
 import android.content.Intent;
+import android.opengl.Visibility;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,12 +32,13 @@ public class MainActivity extends AppCompatActivity {
     public void onResume(){
         Log.i(LOG_TAG, "Inside resume of main activity");
 
-        Button chatButton = (Button) findViewById(R.id.chatButton);
+        if(auth_token.equals("None")) {
+            //toast bad login
+            //clear text boxes
+        } else {
+            //go to activity_list
+        }
 
-        if(auth_token.equals("None"))
-            chatButton.setEnabled(false);
-        else
-            chatButton.setEnabled(true);
 
         super.onResume();
     }
@@ -70,4 +73,26 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);//pass the cuisine to the search activity for searching
         }
     }
+
+    public void click_login_login(View v) {
+        String email = ((EditText) findViewById(R.id.login_edt_email)).getText().toString();
+        String password = ((EditText) findViewById(R.id.login_edt_password)).getText().toString();
+
+        if ((email.length() == 0) || (password.length() == 0)) {
+            //toast "enter stuff"
+        } else {
+            //send http:login
+            //if auth_token == none
+                //toast "invalid login"
+            //else
+                //store email, password, auth_token
+                //go to ListActivity
+        }
+    }
+
+    public void click_login_create(View v) {
+        findViewById(R.id.layout_login).setVisibility(View.GONE);
+
+    }
+
 }

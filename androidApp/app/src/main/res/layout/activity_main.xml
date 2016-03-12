@@ -55,7 +55,8 @@
             android:enabled="true"
             android:layout_alignParentEnd="false"
             android:layout_alignParentStart="false"
-            android:layout_marginLeft="60dp"/>
+            android:layout_marginLeft="60dp"
+            android:onClick="click_login_login"/>
 
         <Button
             android:layout_width="wrap_content"
