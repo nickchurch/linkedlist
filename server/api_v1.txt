@@ -140,7 +140,7 @@ Version: 0.1
                password: $password
                password_conf: $password_conf
                }
-        server response: {result: $status}
+        server response: {result: $status, session_api_key: $session_api_key}
 
     -update your account's information:
         path: $URL/user/updateaccount
