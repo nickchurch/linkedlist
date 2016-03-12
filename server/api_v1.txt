@@ -136,7 +136,6 @@ Version: 0.1
     -create account:
         path: $URL/user/createaccount
         POST: {user: {username: $username,
-               name: $name,
                email_address: $email,
                password: $password
                password_conf: $password_conf
