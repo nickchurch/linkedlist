@@ -125,16 +125,22 @@ Version: 0.1
 
 
 @User paths
+    -login:
+        path: $URL/user/login
+        POST: {user: {username: $username,
+                      password: $password
+                    }
+              }
+        server response: {result: $status, auth_tok: $auth_token}
+
     -create account:
         path: $URL/user/createaccount
-        POST: {auth_token: $auth_tok,
-               user: {username: $username,
+        POST: {user: {username: $username,
                name: $name,
                email_address: $email,
-               profile_pic: $picture_data},
-               authorization:
-                    {Here will be a JSON object of our authorization info depending on what method of encryption we go with,
-                    e.g. public/private key or google account, etc.}}
+               password: $password
+               password_conf: $password_conf
+               }
         server response: {result: $status}
 
     -update your account's information:
