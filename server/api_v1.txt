@@ -127,7 +127,7 @@ Version: 0.1
 @User paths
     -login:
         path: $URL/user/login
-        POST: {user: {username: $username,
+        POST: {user: {email: $email,
                       password: $password
                     }
               }
