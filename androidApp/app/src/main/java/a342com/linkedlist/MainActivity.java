@@ -2,6 +2,7 @@ package a342com.linkedlist;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     public static String LOG_TAG = "My log tag";
+    public static final String MY_PREFS_NAME = "MyPrefsFile";
 
     public static String username = "";
     public static String email = "";
@@ -24,24 +26,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //test
+        SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, 0);
+        username = prefs.getString("username", "None");
+        email = prefs.getString("email", "None");
+        auth_token = prefs.getString("auth_token", "None");
     }
 
     @Override
     public void onResume(){
         Log.i(LOG_TAG, "Inside resume of main activity");
 
-        Button chatButton = (Button) findViewById(R.id.chatButton);
-
-        if(auth_token.equals("None"))
-            chatButton.setEnabled(false);
-        else
-            chatButton.setEnabled(true);
+        if(auth_token.equals("None")) {
+        } else {
+        }
 
         super.onResume();
     }
 
     @Override
     public void onPause(){
+
+        SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
+        editor.putString("auth_token", auth_token);
+        editor.putString("email", email);
+        editor.putString("username", username);
+        editor.commit();
+
         super.onPause();
     }
 
@@ -64,9 +74,6 @@ public class MainActivity extends AppCompatActivity {
             toast.show();
         }
         else{
-            intent.putExtra(email, editText.getText().toString());
-            intent.putExtra(username, editText.getText().toString());
-            intent.putExtras(id);
             startActivity(intent);//pass the cuisine to the search activity for searching
         }
     }
