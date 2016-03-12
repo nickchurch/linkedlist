@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">linkedlist</string>
     <string name="desc_logo">Linked List Logo</string>
+    <string name="login_hint_email">Email</string>
+    <string name="login_hint_password">Password</string>
+    <string name="login_btn_login">Login</string>
+    <string name="login_btn_create">Create New Account</string>
+    <string name="create_hint_nickname">Username</string>
+    <string name="create_btn_create">Create Account</string>
 </resources>

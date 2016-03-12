@@ -9,13 +9,135 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="a342com.linkedlist.MainActivity">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/layout_login"
+        android:layout_below="@+id/img_logo"
+        android:visibility="visible">
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/login_edt_email"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="10dp"
+            android:layout_below="@+id/create_edt_nickname"
+            android:layout_marginTop="20dp"
+            android:editable="true"
+            android:enabled="true"
+            android:focusableInTouchMode="false"
+            android:hint="@string/login_hint_email"
+            android:inputType="textEmailAddress"/>
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/login_edt_password"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="10dp"
+            android:layout_below="@+id/login_edt_email"
+            android:layout_marginTop="20dp"
+            android:editable="true"
+            android:enabled="true"
+            android:focusableInTouchMode="false"
+            android:hint="@string/login_hint_password"
+            android:inputType="textPassword"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/login_btn_login"
+            android:id="@+id/login_btn_login"
+            android:layout_below="@+id/login_edt_password"
+            android:layout_marginTop="20dp"
+            android:clickable="true"
+            android:enabled="true"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="60dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/login_btn_create"
+            android:id="@+id/login_btn_create"
+            android:layout_toRightOf="@+id/login_btn_login"
+            android:layout_alignTop="@+id/login_btn_login"
+            android:layout_marginLeft="40dp"
+            android:enabled="true"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/img_logo"
+        android:id="@+id/layout_create"
+        android:visibility="gone">
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/create_edt_nickname"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="30dp"
+            android:editable="true"
+            android:enabled="true"
+            android:focusableInTouchMode="false"
+            android:hint="@string/create_hint_nickname"
+            android:inputType="text"/>
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/create_edt_email"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="10dp"
+            android:layout_below="@+id/create_edt_nickname"
+            android:layout_marginTop="20dp"
+            android:editable="true"
+            android:enabled="true"
+            android:focusableInTouchMode="false"
+            android:hint="@string/login_hint_email"
+            android:inputType="textEmailAddress"/>
+
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/create_edt_password"
+            android:layout_alignParentStart="false"
+            android:layout_marginLeft="10dp"
+            android:layout_below="@+id/create_edt_email"
+            android:layout_marginTop="20dp"
+            android:editable="true"
+            android:enabled="true"
+            android:focusableInTouchMode="false"
+            android:hint="@string/login_hint_password"
+            android:inputType="textPassword"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/create_btn_create"
+            android:id="@+id/create_btn_create"
+            android:layout_below="@+id/create_edt_password"
+            android:layout_marginTop="20dp"
+            android:clickable="true"
+            android:enabled="true"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentStart="false"
+            android:layout_centerHorizontal="true"/>
+    </RelativeLayout>
+
     <ImageView
         android:layout_width="fill_parent"
-        android:layout_height="160dp"
+        android:layout_height="140dp"
         android:id="@+id/img_logo"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="false"
         android:contentDescription="@string/desc_logo"
         android:src="@drawable/linked_list"
         android:cropToPadding="false"/>
+
 </RelativeLayout>
