@@ -9,8 +9,13 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="a342com.linkedlist.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="160dp"
+        android:id="@+id/img_logo"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="false"
+        android:contentDescription="@string/desc_logo"
+        android:src="@drawable/linked_list"
+        android:cropToPadding="false"/>
 </RelativeLayout>

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">linkedlist</string>
+    <string name="desc_logo">Linked List Logo</string>
 </resources>
