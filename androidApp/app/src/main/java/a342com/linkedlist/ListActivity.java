@@ -1,6 +1,7 @@
 package a342com.linkedlist;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ListView;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
  */
 public class ListActivity extends AppCompatActivity{
 
+    public static final String MY_PREFS_NAME = "MyPrefsFile";
     public static String email = "";
     public static String username = "";
     public static String auth_token = "";
@@ -22,14 +24,12 @@ public class ListActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        Intent intent = getIntent();
-        username = intent.getStringExtra(MainActivity.username);
-        email = intent.getStringExtra(MainActivity.email);
+        SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, 0);
+        username = prefs.getString("username", "None");
+        email = prefs.getString("email", "None");
+        auth_token = prefs.getString("auth_token", "None");
 
-        Bundle ids = getIntent().getExtras();
-        if(ids != null){
-            auth_token = ids.getString(auth_token);
-        }else {
+        if(auth_token == "None"){
             Intent intent1 = new Intent(this, MainActivity.class);
             Toast.makeText(getApplicationContext(), "Not Logged In!", Toast.LENGTH_LONG).show();
             startActivity(intent1);
@@ -43,6 +43,15 @@ public class ListActivity extends AppCompatActivity{
 
     }
 
+    @Override
+    protected  void onPause(){
+        SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
+        editor.putString("auth_token", auth_token);
+        editor.putString("email", email);
+        editor.putString("username", username);
+        editor.commit();
+        super.onPause();
+    }
 
     @Override
     protected void onResume(){
