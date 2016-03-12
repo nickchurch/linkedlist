@@ -3,9 +3,16 @@ PRAGMA foreign_keys = ON;
 drop table if exists user;
 create table user (
   id integer primary key autoincrement,
-  name text not null,
+  username text not null,
   email text not null unique,
   auth_token text not null
+);
+
+drop table if exists session;
+create table session (
+  id integer primary key autoincrement,
+  user_id integer references user(id) on delete cascade,
+  session_api_key text not null
 );
 
 drop table if exists list;
