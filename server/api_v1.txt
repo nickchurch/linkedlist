@@ -60,6 +60,14 @@ Version: 0.1
               list_id: $list_id}
       server response: {result: $status}
 
+    -update a list
+      path: $URL/list/update
+      POST: {session_api_key: $session_api_key,
+              list_id: $list_id,
+              name: $name
+            }
+      server response: {result: $status}
+
     -get all of the lists you have access to:   // useful for loading a "main page" to display all of the lists a user has access to
         path: $URL/lists/
         POST: {session_api_key: $session_api_key}
