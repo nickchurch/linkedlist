@@ -22,12 +22,12 @@ import hashlib
 import time
 
 # config
-#DATABASE = 'C:\Users\drdeg\Desktop\linkedlist\server\linkedlist.db'
 DATABASE = '/tmp/linkedlist.db'
 DEBUG = True
 SECRET_KEY = 'secret'
 USERNAME = 'admin'
 PASSWORD = 'password'
+
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URL'] = 'sqlite:////tmp/linkedlist.db'
@@ -218,6 +218,25 @@ def list_exists_and_user_is_owner(owner_id, list_id):
 	rows = g.db.execute('select * from list where owner_id==? and id==?', [owner_id, list_id]).fetchall()
 	return len(rows) == 1
 
+def get_user_id_from_email(email):
+	user = g.db.execute('select id from user where email==?', [email]).fetchone()
+	if (len(user) == 1):
+		user_id = user[0]
+		return user_id
+	else:
+		return None
+
+def list_exists_and_user_is_member(list_id, user_id):
+	if list_id is None or user_id is None:
+		return False
+	list_exists = len(g.db.execute('select id from list where id==?', [list_id]).fetchall())
+	if not list_exists:
+		return False
+	user_is_member = len(g.db.execute('select id from list_member where list_id==? and user_id==?', [list_id, user_id]).fetchall())
+	if not user_is_member:
+		return False
+	return True
+
 @app.route('/list/create', methods=['POST'])
 @requires_auth
 def create_list():
@@ -244,6 +263,45 @@ def create_list():
 	g.db.commit()
 	return json_ok_response(dict(list_id=list_id))
 
+@app.route('/list/delete', methods=['POST'])
+@requires_auth
+def delete_list():
+	content = request.get_json()
+	if not content:
+		abort(400) # invalid request
+	session_api_key = content.get('session_api_key')
+	list_id = content.get('list_id')
+	user_id = get_auth_user(session_api_key=session_api_key)
+	if user_id is None:
+		app.logger.debug('User tried to delete a list, authorized but could not get user_id with session key %s' % session_api_key)
+		abort(400)
+	if list_exists_and_current_user_is_owner(owner_id=user_id, list_id=list_id):
+		g.db.execute('delete from list where id==?',[list_id])
+		g.db.commit()
+	else:
+		abort(400)
+
+@app.route('/list/update', methods=['POST'])
+@requires_auth
+def update_list():
+	content = request.get_json()
+	if not content:
+		abort(400) # invalid request
+	session_api_key = content.get('session_api_key')
+	list_id = content.get('list_id')
+	name = content.get('name')
+	if name is None:
+		abort(400)
+	user_id = get_auth_user(session_api_key=session_api_key)
+	if user_id is None:
+		app.logger.debug('User tried to delete a list, authorized but could not get user_id with session key %s' % session_api_key)
+		abort(400)
+	if list_exists_and_current_user_is_owner(owner_id=user_id, list_id=list_id):
+		g.db.execute('update list set name=? where id=?',[name, list_id])
+		g.db.commit()
+	else:
+		abort(400)
+
 @app.route('/lists', methods=['POST'])
 @requires_auth
 def get_lists():
@@ -257,25 +315,6 @@ def get_lists():
 		list_name = this_list[1]
 		lists.append(dict(list_name=list_name, list_id=list_id))
 	return json_ok_response(dict(lists=lists))
-
-@app.route('/list/delete', methods=['POST'])
-@requires_auth
-def delete_list():
-	content = request.get_json()
-	if not content:
-		abort(400) # invalid request
-	session_api_key = content.get('session_api_key')
-	list_id = content.get('list_id')
-	user_id = get_auth_user(session_api_key=session_api_key)
-	if user_id is None:
-		app.logger.debug('User tried to create a list, authorized but could not get user_id with session key %s' % session_api_key)
-		abort(400)
-	if list_exists_and_current_user_is_owner(owner_id=user_id, list_id=list_id):
-		g.db.execute('delete from list where owner_id==? and id==?',[user_id, list_id])
-		g.db.commit()
-	else:
-		abort(400)
-
 
 """	# awaiting list_item routes completion
 @app.route('/list', methods=['POST'])
@@ -291,14 +330,6 @@ def get_list():
 	session_api_key = content['session_api_key']
 	user_id = get_auth_user(session_api_key=session_api_key)
 """
-
-def get_user_id_from_email(email):
-	user = g.db.execute('select id from user where email==?', [email]).fetchone()
-	if (len(user) == 1):
-		user_id = user[0]
-		return user_id
-	else:
-		return None
 
 @app.route('/list/adduser', methods=['POST'])
 @requires_auth
@@ -357,17 +388,6 @@ def list_remove_user():
 	g.db.commit()
 	return json_ok_response()
 
-def list_exists_and_user_is_member(list_id, user_id):
-	if list_id is None or user_id is None:
-		return False
-	list_exists = len(g.db.execute('select id from list where id==?', [list_id]).fetchall())
-	if not list_exists:
-		return False
-	user_is_member = len(g.db.execute('select id from list_member where list_id==? and user_id==?', [list_id, user_id]).fetchall())
-	if not user_is_member:
-		return False
-	return True
-
 
 """~~~~ List Item Routes ~~~~"""
 
@@ -376,6 +396,9 @@ def item_with_value_exists_in_list(list_id, value):
 		if list_item[0] == value:
 			return True
 	return False
+
+def item_exists_in_list(list_id, item_id):
+	return len(g.db.execute('select * from list_item where id==? and list_id==?', [item_id, list_id]).fetchall())
 
 @app.route('/list/additemtolist', methods=['POST'])
 @requires_auth
@@ -417,29 +440,24 @@ def update_list_item():
 	list_id = content.get('list_id')
 	if list_id is None:
 		abort(400)
-	list_item_to_update_id = content.get('item_id')
-	if list_item_to_update_id is None:
-		abort(404)
-
 	if not list_exists_and_user_is_member(list_id=list_id, user_id=current_user_id):
 		abort(400)
 	list_item = content.get('item')
 	if list_item is None:
 		abort(400)
-	list_item = json.loads(list_item)
+	list_item_to_update_id = list_item.get('id')
+	if list_item_to_update_id is None:
+		abort(400)
 	list_item_value = list_item.get('value')
 	list_item_checked = bool(list_item.get('checked'))
 	if list_item_value is None or list_item_checked is None:
 		abort(400)
-	# check if there is already an entry in this list with this value, if there is, abort
-	if item_with_value_exists_in_list(list_id=list_id, value=list_item_value):
+	# check if there is already an entry in this list with this value that does not have this id, if there is, abort
+	if (len(g.db.execute('select id from list_item where value==? and id!=?', [list_item_value, list_item_to_update_id]).fetchall()) != 0):
 		abort(400)
 	g.db.execute('update list_item set value=?, checked=? where id=?', [list_item_value, list_item_checked, list_item_to_update_id])
 	g.db.commit()
 	return json_ok_response()
-
-def item_exists_in_list(list_id, item_id):
-	return len(g.db.execute('select * from list_item where id==? and list_id==?', [item_id, list_id]).fetchall())
 
 @app.route('/list/removeitemfromlist', methods=['POST'])
 @requires_auth
@@ -458,13 +476,12 @@ def remove_list_item():
 	list_item_to_remove_id = content.get('item_id')
 	if list_item_to_remove_id is None:
 		abort(400)
-	if not item_exists_in_list(list_id=list_id, item_id=item_id):
+	if not item_exists_in_list(list_id=list_id, item_id=list_item_to_remove_id):
 		abort(400)
 	# the user making the request is a member of the list and the item to remove belongs to the list, so remove it
-	g.db.execute('delete from list_item where id==?', [item_id])
+	g.db.execute('delete from list_item where id==?', [list_item_to_remove_id])
 	g.db.commit()
 	return json_ok_response()
-
 
 if __name__ == '__main__':
 	app.run()
