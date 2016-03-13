@@ -33,7 +33,9 @@ import android.widget.LinearLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.Query;
 import android.location.Location;
 import com.google.gson.annotations.Expose;
@@ -97,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.LENGTH_LONG)
                     .show();
         } else {
+            /*
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
             logging.setLevel(HttpLoggingInterceptor.Level.BODY);
             OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -153,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
             //toast "invalid login"
             //else
             //store email, password, auth_token
-
+            */
         }
     }
 
@@ -185,31 +188,23 @@ public class MainActivity extends AppCompatActivity {
                     .client(httpClient)    //add logging
                     .build();
             LoginService login_service = retrofit.create(LoginService.class);
-            Call<LoginResponse> queryLogin = login_service.CreateResponse(email, password, password, nickname);
 
-            queryLogin.enqueue(new Callback<LoginResponse>() {
+
+            Call<LoginResponse> call = login_service.login_user(new LoginRequest(email, password));
+
+            call.enqueue(new Callback<LoginResponse>() {
                 @Override
                 public void onResponse(Response<LoginResponse> response) {
-                    if (response.body() != null && response.body().result.equals("ok")) {
-                        if (response.body().authTok.equals("None")) {
-                            Toast.makeText(
-                                    getApplicationContext(),
-                                    "Invalid email address or password\nPlease try again.",
-                                    Toast.LENGTH_LONG)
-                                    .show();
-                            ((EditText) findViewById(R.id.login_edt_password)).setText("");
-                        } else {
-                            auth_token = response.body().authTok;
-                            goto_ListActivity();
-                        }
-                    } else {
+                    if (response.isSuccess()) {
+                        LoginResponse resp= response.body();
+
                         Toast.makeText(
                                 getApplicationContext(),
-                                "Bad server response!\n\n"
-                                        + "MainActivity().LoginResponse.onFailure():\n"
-                                        + response.raw().code(),
+                                "session_api_key=" + resp.session_api_key,
                                 Toast.LENGTH_LONG)
                                 .show();
+                    } else {
+                        //TODO: error
                     }
                 }
 
@@ -224,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
                             .show();
                 }
             });
-
         }
     }
 
@@ -241,22 +235,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public interface LoginService {
-        @GET("user/login")
-        Call<LoginResponse> LoginResponse(@Query("email") String email,
-                                           @Query("password") String password);
-        @GET("user/createaccount")
-        Call<LoginResponse> CreateResponse(@Query("email_address") String email,
-                                          @Query("password") String password,
-                                          @Query("password_conf") String password_conf,
-                                          @Query("username") String nickname);
+        @POST("user/login")
+        Call<LoginResponse> login_user(@Body LoginRequest body);
     }
 }
 
 class LoginResponse {
-    @SerializedName("result")
-    @Expose
-    public String result;
-    @SerializedName("session_api_key")
-    @Expose
-    public String authTok;
+    public String session_api_key;
+
+    LoginResponse(String _session_api_key) {
+        this.session_api_key = _session_api_key;
+    }
+}
+
+class LoginRequest {
+    public String email_address;
+    public String password;
+
+    LoginRequest(String _email_address, String _password) {
+        this.email_address = _email_address;
+        this.password = _password;
+    }
 }

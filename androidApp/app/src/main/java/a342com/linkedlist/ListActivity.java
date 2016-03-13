@@ -152,7 +152,7 @@ public class ListActivity extends AppCompatActivity {
                 if (response.body() != null && response.body().result.equals("ok")) {
                     List<Room> roomsResponse = response.body().resultList;
                     while (!roomsResponse.isEmpty()) {
-                        Room elem = roomsResponse.remove(roomsList.size()-1);
+                        Room elem = roomsResponse.remove(roomsResponse.size()-1);
                         //TODO
                         RoomElement le = new RoomElement(
                                 elem.list_id,
@@ -221,4 +221,13 @@ class ListsResponse {
     @SerializedName("linkedlists")
     @Expose
     public List<Room> resultList = new ArrayList<Room>();
+}
+
+class Room {
+    @SerializedName("list_id")
+    @Expose
+    public String list_id;
+    @SerializedName("list_name")
+    @Expose
+    public String list_name;
 }

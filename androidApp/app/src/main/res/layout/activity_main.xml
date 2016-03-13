@@ -13,7 +13,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/layout_login"
-        android:visibility="visible"
         android:layout_alignParentEnd="false"
         android:layout_alignParentStart="false"
         android:layout_alignParentBottom="true">
@@ -21,30 +20,27 @@
         <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
             android:id="@+id/login_edt_email"
+            android:text=""
+            android:hint="@string/login_hint_email"
             android:layout_alignParentStart="false"
             android:layout_marginLeft="10dp"
-            android:layout_below="@+id/create_edt_nickname"
             android:layout_marginTop="20dp"
-            android:editable="true"
-            android:enabled="true"
-            android:focusableInTouchMode="false"
-            android:hint="@string/login_hint_email"
-            android:inputType="textEmailAddress"/>
+            />
 
         <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPassword"
             android:id="@+id/login_edt_password"
+            android:text=""
+            android:hint="@string/login_hint_password"
             android:layout_alignParentStart="false"
             android:layout_marginLeft="10dp"
             android:layout_below="@+id/login_edt_email"
             android:layout_marginTop="20dp"
-            android:editable="true"
-            android:enabled="true"
-            android:focusableInTouchMode="false"
-            android:hint="@string/login_hint_password"
-            android:inputType="textPassword"/>
+            />
 
         <Button
             android:layout_width="wrap_content"
@@ -58,7 +54,8 @@
             android:layout_alignParentEnd="false"
             android:layout_alignParentStart="false"
             android:layout_marginLeft="60dp"
-            android:onClick="login_login"/>
+            android:onClick="login_login"
+            />
 
         <Button
             android:layout_width="wrap_content"
@@ -69,7 +66,8 @@
             android:layout_alignTop="@+id/login_btn_login"
             android:layout_marginLeft="30dp"
             android:enabled="true"
-            android:onClick="login_create"/>
+            android:onClick="login_create"
+            />
     </RelativeLayout>
 
     <RelativeLayout
@@ -82,43 +80,37 @@
         <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:inputType="text"
             android:id="@+id/create_edt_nickname"
+            android:text=""
+            android:hint="@string/create_hint_nickname"
             android:layout_alignParentStart="false"
             android:layout_marginLeft="10dp"
-            android:layout_marginTop="30dp"
-            android:editable="true"
-            android:enabled="true"
-            android:focusableInTouchMode="false"
-            android:hint="@string/create_hint_nickname"
-            android:inputType="text"/>
+            android:layout_marginTop="30dp"/>
 
         <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:inputType="textEmailAddress"
             android:id="@+id/create_edt_email"
+            android:text=""
+            android:hint="@string/login_hint_email"
             android:layout_alignParentStart="false"
             android:layout_marginLeft="10dp"
             android:layout_below="@+id/create_edt_nickname"
-            android:layout_marginTop="20dp"
-            android:editable="true"
-            android:enabled="true"
-            android:focusableInTouchMode="false"
-            android:hint="@string/login_hint_email"
-            android:inputType="textEmailAddress"/>
+            android:layout_marginTop="20dp"/>
 
         <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPassword"
             android:id="@+id/create_edt_password"
+            android:text=""
+            android:hint="@string/login_hint_password"
             android:layout_alignParentStart="false"
             android:layout_marginLeft="10dp"
             android:layout_below="@+id/create_edt_email"
-            android:layout_marginTop="20dp"
-            android:editable="true"
-            android:enabled="true"
-            android:focusableInTouchMode="false"
-            android:hint="@string/login_hint_password"
-            android:inputType="textPassword"/>
+            android:layout_marginTop="20dp"/>
 
         <Button
             android:layout_width="wrap_content"
