@@ -83,8 +83,9 @@ Version: 0.1
                         ...]
                       list_items:
                         [{item_id: $id,
-                          item_text: $text,
-                          is_done: $is_done,
+                          value: $value,
+                          list_id: $list_id
+                          checked: $checked, // 0, or 1 integer values
                           picture: $picture_data // the picture is a bunch of binary data passed to the server, ideally this should be encrypted
                          },
                         ...]
