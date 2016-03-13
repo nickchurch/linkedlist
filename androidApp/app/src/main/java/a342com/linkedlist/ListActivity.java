@@ -9,16 +9,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.content.Intent;
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.EditText;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,27 +25,23 @@ import android.widget.LinearLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
-import android.location.Location;
+import retrofit2.http.Body;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
-import java.util.ArrayList;
+import retrofit2.http.POST;
 
 public class ListActivity extends AppCompatActivity {
 
     public static String LOG_TAG = "My log tag";
     public static final String MY_PREFS_NAME = "MyPrefsFile";
 
-    public static String nickname = "";
+    public static String username = "";
     public static String email = "";
-    public static String auth_token = "";
+    public static String session_api_key = "";
     public static String password = "";
 
     public ArrayList<RoomElement> roomList;
     public MyAdapter aa;
+    public ListsService lists_service;
 
     private class RoomElement {
         public String list_id;
@@ -112,7 +101,13 @@ public class ListActivity extends AppCompatActivity {
             }
         });
 
+        roomList = new ArrayList<RoomElement>();
+        aa = new MyAdapter(this, R.layout.sub_list_element, roomList);
+        ListView myListView = (ListView) findViewById(R.id.lst_msglist);
+        myListView.setAdapter(aa);
+        aa.notifyDataSetChanged();
 
+        refreshList(new View(getApplicationContext()));
     }
 
     @Override
@@ -120,19 +115,13 @@ public class ListActivity extends AppCompatActivity {
         super.onResume();
 
         SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, 0);
-        nickname = prefs.getString("username", "");
+        username = prefs.getString("username", "");
         email = prefs.getString("email", "");
-        auth_token = prefs.getString("auth_token", "");
+        session_api_key = prefs.getString("session_api_key", "");
         password = prefs.getString("password", "");
 
-        ((CollapsingToolbarLayout)findViewById(R.id.toolbar_layout)).setTitle(nickname + "'s Lists");
+        ((CollapsingToolbarLayout)findViewById(R.id.toolbar_layout)).setTitle(username + "'s Lists");
 
-        refreshList();
-    }
-
-    public void refreshList(View v) {refreshList();}
-    public void refreshList() {
-        aa.clear();
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -143,17 +132,23 @@ public class ListActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())    //parse Gson string
                 .client(httpClient)    //add logging
                 .build();
-        ListsService service = retrofit.create(ListsService.class);
-        Call<ListsResponse> queryLists = service.getLists(auth_token);
+        lists_service = retrofit.create(ListsService.class);
 
-        queryLists.enqueue(new Callback<ListsResponse>() {
+        refreshList(new View(getApplicationContext()));
+    }
+
+    public void refreshList(View v) {
+        aa.clear();
+
+        Call<getListsResponse> queryLists = lists_service.get_lists(new getListsRequest(session_api_key));
+
+        queryLists.enqueue(new Callback<getListsResponse>() {
             @Override
-            public void onResponse(Response<ListsResponse> response) {
-                if (response.body() != null && response.body().result.equals("ok")) {
-                    List<Room> roomsResponse = response.body().resultList;
+            public void onResponse(Response<getListsResponse> response) {
+                if (response.isSuccess()) {
+                    List<Room> roomsResponse = response.body().linkedlists;
                     while (!roomsResponse.isEmpty()) {
                         Room elem = roomsResponse.remove(roomsResponse.size()-1);
-                        //TODO
                         RoomElement le = new RoomElement(
                                 elem.list_id,
                                 elem.list_name
@@ -171,7 +166,7 @@ public class ListActivity extends AppCompatActivity {
                 Toast.makeText(
                         getApplicationContext(),
                         "Could not connect to server!\n\n"
-                                + "ListActivity().ListsResponse.onFailure():\n"
+                                + "ListActivity().getListsResponse.onFailure():\n"
                                 + t.toString(),
                         Toast.LENGTH_LONG)
                         .show();
@@ -180,13 +175,40 @@ public class ListActivity extends AppCompatActivity {
     }
 
 
-    public void createList(View v) {createList();}
-    public void createList() {
-        //TODO
+    public void createList(View v) {
+        Call<createListResponse> createList = lists_service.create_list(new getListsRequest(session_api_key));
+
+        createList.enqueue(new Callback<createListResponse>() {
+            @Override
+            public void onResponse(Response<createListResponse> response) {
+                if (response.isSuccess()) {
+                    createListResponse resp = response.body();
+                    //TODO: actually we should go into the new list
+                    Toast.makeText(
+                            getApplicationContext(),
+                            "created list=" + resp.list_id,
+                            Toast.LENGTH_LONG)
+                            .show();
+                    refreshList(new View(getApplicationContext()));
+                } else {
+                    //TODO: error
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Could not connect to server!\n\n"
+                                + "ListActivity().getListsResponse.onFailure():\n"
+                                + t.toString(),
+                        Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
     }
 
-    public void removeList(View v) {removeList();}
-    public void removeList() {
+    public void removeList(View v) {
         //TODO
     }
 
@@ -195,39 +217,43 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public interface ListsService {
-        @GET("lists")
-        Call<ListsResponse> getLists(@Query("session_api_key") String auth_token);
+        @POST("lists")
+        Call<getListsResponse> get_lists(@Body getListsRequest body);
 
-
-        @GET("list/removeuser")
-        Call<ListsResponse> leaveList(@Query("session_api_key") String auth_token,
-                                      @Query("list_id") String list_id,
-                                      @Query("user_id") String user_id);
-
-
-        @GET("") //TODO: not implemented
-        Call<LoginResponse> createList(@Query("email_address") String email,
-                                       @Query("password") String password,
-                                       @Query("password_conf") String password_conf,
-                                       @Query("username") String nickname);
+        @POST("list/create")
+        Call<createListResponse> create_list(@Body getListsRequest body);
     }
 
 }
 
-class ListsResponse {
-    @SerializedName("result")
-    @Expose
+class createListResponse {
     public String result;
-    @SerializedName("linkedlists")
-    @Expose
-    public List<Room> resultList = new ArrayList<Room>();
+    public String list_id;
+
+    createListResponse (String _id) {
+        this.list_id = _id;
+    }
+}
+
+class getListsRequest {
+    public String session_api_key;
+
+    getListsRequest(String _session_api_key) {
+        this.session_api_key = _session_api_key;
+    }
+}
+
+class getListsResponse {
+    public String result;
+    public List<Room> linkedlists = new ArrayList<Room>();
 }
 
 class Room {
-    @SerializedName("list_id")
-    @Expose
     public String list_id;
-    @SerializedName("list_name")
-    @Expose
     public String list_name;
+
+    Room (String _id, String _name) {
+        this.list_id = _id;
+        this.list_name = _name;
+    }
 }
