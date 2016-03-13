@@ -76,6 +76,11 @@ Version: 0.1
             {result: $status,
              list:  {list_id: $id,
                       list_name: $name,
+                      list_members:
+                        [{user_id: $user_id,
+                          user_name: $username
+                          },
+                        ...]
                       list_items:
                         [{item_id: $id,
                           item_text: $text,
