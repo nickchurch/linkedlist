@@ -52,7 +52,7 @@ Version: 0.1
       path: $URL/list/create
       POST: {session_api_key: $session_api_key,
               name: $list_name}
-      server response: {result: $status}
+      server response: {result: $status, list_id: $list_id}
 
     -get all of the lists you have access to:   // useful for loading a "main page" to display all of the lists a user has access to
         path: $URL/lists/
