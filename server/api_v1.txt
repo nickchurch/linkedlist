@@ -48,6 +48,12 @@ Version: 0.1
     * data validation which the server will handle.
 
 @List paths
+    -create a list
+      path: $URL/list/create
+      POST: {session_api_key: $session_api_key,
+              name: $list_name}
+      server response: {result: $status}
+
     -get all of the lists you have access to:   // useful for loading a "main page" to display all of the lists a user has access to
         path: $URL/lists/
         POST: {session_api_key: $session_api_key}
@@ -127,7 +133,7 @@ Version: 0.1
 @User paths
     -login:
         path: $URL/user/login
-        POST: {user: {email: $email,
+        POST: {user: {email_address: $email,
                       password: $password
                     }
               }
@@ -135,7 +141,7 @@ Version: 0.1
 
     -create account:
         path: $URL/user/createaccount
-        POST: {user: {username: $username,
+        POST: {username: $username,
                email_address: $email,
                password: $password
                password_conf: $password_conf
