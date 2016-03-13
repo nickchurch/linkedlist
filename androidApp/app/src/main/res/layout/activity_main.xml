@@ -10,11 +10,13 @@
     tools:context="a342com.linkedlist.MainActivity">
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/layout_login"
-        android:layout_below="@+id/img_logo"
-        android:visibility="visible">
+        android:visibility="visible"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentBottom="true">
 
         <EditText
             android:layout_width="fill_parent"
@@ -56,7 +58,7 @@
             android:layout_alignParentEnd="false"
             android:layout_alignParentStart="false"
             android:layout_marginLeft="60dp"
-            android:onClick="click_login_login"/>
+            android:onClick="login_login"/>
 
         <Button
             android:layout_width="wrap_content"
@@ -65,16 +67,17 @@
             android:id="@+id/login_btn_create"
             android:layout_toRightOf="@+id/login_btn_login"
             android:layout_alignTop="@+id/login_btn_login"
-            android:layout_marginLeft="40dp"
-            android:enabled="true"/>
+            android:layout_marginLeft="30dp"
+            android:enabled="true"
+            android:onClick="login_create"/>
     </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/img_logo"
+        android:layout_height="wrap_content"
         android:id="@+id/layout_create"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:layout_alignParentBottom="true">
 
         <EditText
             android:layout_width="fill_parent"
@@ -128,15 +131,14 @@
             android:enabled="true"
             android:layout_alignParentEnd="false"
             android:layout_alignParentStart="false"
-            android:layout_centerHorizontal="true"/>
+            android:layout_centerHorizontal="true"
+            android:onClick="create_create"/>
     </RelativeLayout>
 
     <ImageView
         android:layout_width="fill_parent"
-        android:layout_height="140dp"
+        android:layout_height="120dp"
         android:id="@+id/img_logo"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="false"
         android:contentDescription="@string/desc_logo"
         android:src="@drawable/linked_list"
         android:cropToPadding="false"/>
