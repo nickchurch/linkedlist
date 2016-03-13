@@ -52,6 +52,12 @@ Version: 0.1
       path: $URL/list/create
       POST: {session_api_key: $session_api_key,
               name: $list_name}
+      server response: {result: $status, list_id: $list_id}
+
+    -delete a list
+      path: $URL/list/delete
+      POST: {session_api_key: $session_api_key,
+              list_id: $list_id}
       server response: {result: $status}
 
     -get all of the lists you have access to:   // useful for loading a "main page" to display all of the lists a user has access to
@@ -70,10 +76,16 @@ Version: 0.1
             {result: $status,
              list:  {list_id: $id,
                       list_name: $name,
+                      list_members:
+                        [{user_id: $user_id,
+                          user_name: $username
+                          },
+                        ...]
                       list_items:
                         [{item_id: $id,
-                          item_text: $text,
-                          is_done: $is_done,
+                          value: $value,
+                          list_id: $list_id
+                          checked: $checked, // 0, or 1 integer values
                           picture: $picture_data // the picture is a bunch of binary data passed to the server, ideally this should be encrypted
                          },
                         ...]
@@ -84,8 +96,7 @@ Version: 0.1
         path: $URL/list/adduser
         POST: {session_api_key: $session_api_key,
                list_id: $list_id,
-               user_id:
-               $user_id
+               user_email: $user_email
               }
         server response: {result: $status}
 
