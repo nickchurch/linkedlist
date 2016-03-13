@@ -88,6 +88,14 @@ def requires_auth(f):
 			return f(*args, **kwargs)
 	return decorated
 
+def get_auth_user(session_api_key):
+	if session_api_key is None:
+		return None
+	rows = g.db.execute('select user_id from session where session_api_key=?', [session_api_key]).fetchall()
+	if len(rows) == 1:
+		return rows[0]
+	else:
+		return None
 
 """~~~~~ Routes ~~~~~"""
 
@@ -107,7 +115,6 @@ def gen_api_key(auth_token):
 
 @app.route('/user/login', methods=['POST'])
 def login():
-	print 'login'
 	content = request.get_json()
 	if not content:
 		abort(400) # invalid request
@@ -121,23 +128,20 @@ def login():
 		abort(400, 'Invalid login credentials')
 	elif (len(rows) == 1):
 		user = rows[0]
-		app.logger.debug(user)
 		user_id = user[0]
 		db_auth_token = user[1]
 		session_api_key = gen_api_key(db_auth_token)
 		if check_password_hash(db_auth_token, password):
 			# the password is good, return a session token
-			response_data = dict(session_api_key=session_api_key)
 			g.db.execute('delete from session where user_id=?', [user_id])
 			g.db.execute('insert into session (user_id, session_api_key) values (?, ?)', [user_id, session_api_key])
 			g.db.commit()
-			return json_ok_response(response_data)
+			return json_ok_response(dict(session_api_key=session_api_key))
 		else:
 			# the password is invalid, return a failure
 			abort(400, 'Invalid login credentials')
 	else:
 		# this shouldn't be possible because emails are unique but we should still handle the case, and print an error to the server log.
-		app.logger.error('%d entries for email \'%s\'' % (len(rows), email))
 		abort(500, 'Something bad happened, please contact a server administrator')
 
 
@@ -147,7 +151,6 @@ def email_taken(email):
 
 @app.route('/user/createaccount', methods=['POST'])
 def create_user():
-	print 'create_user'
 	content = request.get_json() # force=True will try and get json data even if the header doesn't say the content type is application/json
 	if not content:
 		abort(400) # invalid request
@@ -174,14 +177,13 @@ def create_user():
 	user_id = row[0]
 	auth_token = row[1]
 	session_api_key = gen_api_key(auth_token)
-	g.db.execute('insert into session (user_id, session_api_key) values (?, ?)', [user.id, session_api_key])
+	g.db.execute('insert into session (user_id, session_api_key) values (?, ?)', [user_id, session_api_key])
 	g.db.commit()
-	return json_ok_response(data=session_api_key)
+	return json_ok_response(dict(session_api_key=session_api_key))
 
 @app.route('/user', methods=['POST'])
 @requires_auth
 def get_user_info():
-	print 'get_user_info'
 	content = request.get_json()
 	if not content:
 		abort(400) # invalid request
@@ -195,10 +197,38 @@ def get_user_info():
 	else:
 		username = row[0]
 		email = row[1]
-		user_data = dict(username=username, email=email)
-		return json_ok_response(user_data)
+		return json_ok_response(dict(username=username, email=email))
+
+@app.route('/list/create', methods=['POST'])
+@requires_auth
+def create_list():
+	content = request.get_json()
+	if not content:
+		abort(400) # invalid request
+	session_api_key = request.get_json()['session_api_key']
+	name = content.get('name')
+	if name is None:
+		abort(400)
+	user_id = get_auth_user(session_api_key)
+	if user_id is None:
+		abort(400)
+	g.db.execute('insert into list (owner_id, name) values (?, ?)', [user_id, name])
+	g.db.commit()
+	return json_ok_response()
+
+@app.route('/lists', methods=['POST'])
+@requires_auth
+def get_lists():
+	session_api_key = request.get_json()['session_api_key']
+	user_id = get_auth_user(session_api_key)
+	rows = g.db.execute('select id, name from lists where owner_id = ?', [user_id]).fetchall()
+	lists = []
+	for row in rows:
+		list_id = row[0]
+		list_name = row[1]
+		lists.append(dict(list_name=list_name, list_id=list_id))
+	return json_ok_response(dict(lists=lists))
+
 
 if __name__ == '__main__':
 	app.run()
-
-
