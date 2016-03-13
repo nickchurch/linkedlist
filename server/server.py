@@ -316,7 +316,7 @@ def get_lists():
 		lists.append(dict(list_name=list_name, list_id=list_id))
 	return json_ok_response(dict(lists=lists))
 
-"""	# awaiting list_item routes completion
+
 @app.route('/list', methods=['POST'])
 @requires_auth
 def get_list():
@@ -329,7 +329,35 @@ def get_list():
 	# check that the user has authorization to access this list
 	session_api_key = content['session_api_key']
 	user_id = get_auth_user(session_api_key=session_api_key)
-"""
+	# make sure the user is a member of this list
+	if not list_exists_and_user_is_member(list_id=list_id, user_id=user_id):
+		abort(400, 'User does not belong to requested list, or list does not exist')
+	# get the name of the list
+	list_info = g.db.execute('select name, owner_id from list where id==?', [list_id]).fetchone()
+	list_name = list_info[0]
+	list_owner_id = list_info[1]
+	# compile the members of the list
+	list_members = []
+	list_member_rows = g.db.execute('select user_id from list_member where list_id==?', [list_id]).fetchall()
+	for member_row in list_member_rows:
+		member_id = member_row[0]
+		list_member = g.db.execute('select username, email from user where id==?', [member_id]).fetchone()
+		member_username = list_member[0]
+		member_email = list_member[1]
+		member = dict(id=member_id, username=member_username, email=member_email)
+		list_members.append(member)
+	# compile the items in the list
+	list_items = []
+	list_item_rows = g.db.execute('select id, value, checked from list_item where list_id==?', [list_id])
+	for item_row in list_item_rows:
+		item_id = item_row[0]
+		item_value = item_row[1]
+		item_checked = item_row[2]
+		item = dict(id=item_id, value=item_value, checked=item_checked)
+		list_items.append(item)
+	data = dict(list_id=list_id, list_name=list_name, owner_id=list_owner_id, list_members=list_members, list_items=list_items)
+	return json_ok_response(data)
+
 
 @app.route('/list/adduser', methods=['POST'])
 @requires_auth

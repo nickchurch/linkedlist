@@ -84,15 +84,16 @@ Version: 0.1
             {result: $status,
              list:  {list_id: $id,
                       list_name: $name,
+                      owner_id: $owner_id
                       list_members:
-                        [{user_id: $user_id,
-                          user_name: $username
+                        [{id: $user_id,
+                          username: $username
+                          email: $email
                           },
                         ...]
                       list_items:
                         [{item_id: $id,
                           value: $value,
-                          list_id: $list_id
                           checked: $checked, // 0, or 1 integer values
                           picture: $picture_data // the picture is a bunch of binary data passed to the server, ideally this should be encrypted
                          },
