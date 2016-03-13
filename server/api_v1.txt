@@ -48,26 +48,53 @@ Version: 0.1
     * data validation which the server will handle.
 
 @List paths
+    -create a list
+      path: $URL/list/create
+      POST: {session_api_key: $session_api_key,
+              name: $list_name}
+      server response: {result: $status, list_id: $list_id}
+
+    -delete a list
+      path: $URL/list/delete
+      POST: {session_api_key: $session_api_key,
+              list_id: $list_id}
+      server response: {result: $status}
+
+    -update a list
+      path: $URL/list/update
+      POST: {session_api_key: $session_api_key,
+              list_id: $list_id,
+              name: $name
+            }
+      server response: {result: $status}
+
     -get all of the lists you have access to:   // useful for loading a "main page" to display all of the lists a user has access to
         path: $URL/lists/
-        POST: {auth_token: $auth_tok}
+        POST: {session_api_key: $session_api_key}
         server response: the resulting HTTP status code and the JSON:
             {result: $status, linkedlists: [{list_id, list_name, (and any other necessary fields, I don't think any more are
             needed. Possibly a picture that is associated with the list)}, ...]}
 
     -get a specific list:   // like specifying a specific chat in hangouts or something, allows you to go to an activity to manipulate that list
         path: $URL/list/
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                list_id: $id
               }
         server response:
             {result: $status,
              list:  {list_id: $id,
                       list_name: $name,
+                      owner_id: $owner_id
+                      list_members:
+                        [{id: $user_id,
+                          username: $username
+                          email: $email
+                          },
+                        ...]
                       list_items:
                         [{item_id: $id,
-                          item_text: $text,
-                          is_done: $is_done,
+                          value: $value,
+                          checked: $checked, // 0, or 1 integer values
                           picture: $picture_data // the picture is a bunch of binary data passed to the server, ideally this should be encrypted
                          },
                         ...]
@@ -76,16 +103,15 @@ Version: 0.1
 
     -add a user to one of your lists:
         path: $URL/list/adduser
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                list_id: $list_id,
-               user_id:
-               $user_id
+               user_email: $user_email
               }
         server response: {result: $status}
 
     -remove a user from one of your lists:
         path: $URL/list/removeuser
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                list_id: $list_id,
                user_id: $user_id
               }
@@ -94,7 +120,7 @@ Version: 0.1
 @List Item paths
     -add an item to a list:
         path: $URL/list/additemtolist/
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                list_id: $id,
                $item: {(item json goes here, as described above, in the server response from retreiving a list)}
               }
@@ -111,43 +137,48 @@ Version: 0.1
 
     -remove an item from a list:
         path: $URL/list/removeitemfromlist/
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                list_id: $list_id,
                item_id: $item_id}
         server response: {result: $status}
 
     -update an item on a list:
         path: $URL/list/updatelistitem/
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                list_id: $list_id,
                item: {item's json structure as described above in "get a specific list"}}
         server response: {result: $status}
 
 
 @User paths
+    -login:
+        path: $URL/user/login
+        POST: {user: {email_address: $email,
+                      password: $password
+                    }
+              }
+        server response: {result: $status, session_api_key: $session_api_key}
+
     -create account:
         path: $URL/user/createaccount
-        POST: {auth_token: $auth_tok,
-               user: {username: $username,
-               name: $name,
+        POST: {username: $username,
                email_address: $email,
-               profile_pic: $picture_data},
-               authorization:
-                    {Here will be a JSON object of our authorization info depending on what method of encryption we go with,
-                    e.g. public/private key or google account, etc.}}
-        server response: {result: $status}
+               password: $password
+               password_conf: $password_conf
+               }
+        server response: {result: $status, session_api_key: $session_api_key}
 
     -update your account's information:
         path: $URL/user/updateaccount
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                user: {same as above, with changes made}
               }
         server response: {result: $status}
 
     -get information about a specific user:
         path: $URL/user/
-        POST: {auth_token: $auth_tok,
-               username: $username // (the username of the account you would like to view. must either be "friends" with the account or it must be your own)
+        POST: {session_api_key: $session_api_key,
+               email: $email // (the username of the account you would like to view. must either be "friends" with the account or it must be your own)
                                    // if it is your account, you can get back all of the information related to it, if it is someone else's
                                    // you get back limited info about it (e.g. you want to view someone's profile)
               }
@@ -156,7 +187,6 @@ Version: 0.1
              user:
                 {id: $id,
                  username: $username,
-                 name: $name,
                  email: $email,
                  profile_pic: $picture
                 }
@@ -164,7 +194,7 @@ Version: 0.1
 
     -get your friends list:
         path: $URL/users/friends
-        POST: {auth_token: $auth_tok}
+        POST: {session_api_key: $session_api_key}
         server response:
             {result: $status,
              friends_list:
@@ -174,14 +204,14 @@ Version: 0.1
 
     -add a user to your friends list:
         path: $URL/users/addfriend
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                friend_username: $username
               }
         server response: {result: $status}
 
     -remove a user from your friends list:
         path: $URL/users/removefriend
-        POST: {auth_token: $auth_tok,
+        POST: {session_api_key: $session_api_key,
                friend_username: $username
               }
         server response: {result: $status}
