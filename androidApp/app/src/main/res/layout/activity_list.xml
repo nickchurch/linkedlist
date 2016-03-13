@@ -41,8 +41,8 @@
         tools:listitem="@layout/sub_list_element"
         android:divider="#424242"
         android:dividerHeight="1px"
-        android:clickable="true"
-        />
+        android:clickable="false"
+        android:focusable="false"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
