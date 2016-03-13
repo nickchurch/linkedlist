@@ -221,6 +221,4 @@ class ListsResponse {
     @SerializedName("linkedlists")
     @Expose
     public List<Room> resultList = new ArrayList<Room>();
-
-
 }
