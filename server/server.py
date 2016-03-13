@@ -88,12 +88,13 @@ def requires_auth(f):
 			return f(*args, **kwargs)
 	return decorated
 
+# return the user id associated with the passed in api key
 def get_auth_user(session_api_key):
 	if session_api_key is None:
 		return None
 	rows = g.db.execute('select user_id from session where session_api_key=?', [session_api_key]).fetchall()
 	if len(rows) == 1:
-		return rows[0]
+		return rows[0][0]
 	else:
 		return None
 
@@ -199,36 +200,67 @@ def get_user_info():
 		email = row[1]
 		return json_ok_response(dict(username=username, email=email))
 
+def list_exists(owner_id, list_name):
+	rows = g.db.execute('select * from list where (owner_id==?) and (name==?)', [owner_id, list_name]).fetchall()
+	return (len(rows) != 0)
+
 @app.route('/list/create', methods=['POST'])
 @requires_auth
 def create_list():
 	content = request.get_json()
 	if not content:
+		app.logger.debug('create_list: no message content')
 		abort(400) # invalid request
 	session_api_key = request.get_json()['session_api_key']
 	name = content.get('name')
 	if name is None:
+		app.logger.debug('User %s attempted to create a list with no name' % user_id)
 		abort(400)
-	user_id = get_auth_user(session_api_key)
+	user_id = get_auth_user(session_api_key=session_api_key)
 	if user_id is None:
+		app.logger.debug('User tried to create a list, authorized but could not get user_id with session key %s' % session_api_key)
+		abort(400)
+	# a user can't create more than one list with the same name
+	if list_exists(owner_id=user_id, list_name=name):
+		app.logger.debug('User %s tried to create the list %s but it already exists' % (user_id, name))
 		abort(400)
 	g.db.execute('insert into list (owner_id, name) values (?, ?)', [user_id, name])
 	g.db.commit()
-	return json_ok_response()
+	row = g.db.execute('select id from list where (owner_id==?) and (name==?)', [user_id, name]).fetchone()
+	list_id = row[0]
+	# add the user to the list_member table, even though this user is already listed as the list owner
+	g.db.execute('insert into list_member (list_id, user_id) values (?, ?)', [list_id, user_id])
+	g.db.commit()
+	return json_ok_response(dict(list_id=list_id))
 
 @app.route('/lists', methods=['POST'])
 @requires_auth
 def get_lists():
 	session_api_key = request.get_json()['session_api_key']
-	user_id = get_auth_user(session_api_key)
-	rows = g.db.execute('select id, name from lists where owner_id = ?', [user_id]).fetchall()
+	user_id = get_auth_user(session_api_key=session_api_key)
+	rows = g.db.execute('select list_id from list_member where (user_id==?)', [user_id]).fetchall()
 	lists = []
 	for row in rows:
-		list_id = row[0]
-		list_name = row[1]
+		this_list = g.db.execute('select id, name from list where (id==?)', [row[0]]).fetchone()
+		list_id = this_list[0]
+		list_name = this_list[1]
 		lists.append(dict(list_name=list_name, list_id=list_id))
 	return json_ok_response(dict(lists=lists))
 
+"""
+@app.route('/list', methods=['POST'])
+@requires_auth
+def get_list():
+	content = request.get_json()
+	if not content:
+		abort(400) # invalid request
+	list_id = content.get('list_id')
+	if list_id is None:
+		abort(400)
+	# check that the user has authorization to access this list
+	session_api_key = content['session_api_key']
+	user_id = get_auth_user(session_api_key=session_api_key)
+"""
 
 if __name__ == '__main__':
 	app.run()
