@@ -35,6 +35,7 @@ app.config.from_object(__name__)
 # app.config.from_envvar('LINKEDLIST_SETTINGS', silent=True) # our config file
 
 """~~~~SQLAlchemy class definitions~~~~"""
+# for when I have time to migrate our app to this schema...
 """
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -81,7 +82,10 @@ def check_auth(api_key):
 def requires_auth(f):
 	@wraps(f)
 	def decorated(*args, **kwargs):
-		session_api_key = request.get_json()['session_api_key']
+		message_json = request.get_json()
+		session_api_key = message_json.get('session_api_key')
+		if session_api_key is None:
+			abort(400, 'No API key')
 		if not check_auth(session_api_key):
 			abort(400, 'Invalid API key')
 		else:
@@ -247,7 +251,7 @@ def get_lists():
 		lists.append(dict(list_name=list_name, list_id=list_id))
 	return json_ok_response(dict(lists=lists))
 
-"""
+"""	# awaiting list_item routes completion
 @app.route('/list', methods=['POST'])
 @requires_auth
 def get_list():
@@ -261,6 +265,72 @@ def get_list():
 	session_api_key = content['session_api_key']
 	user_id = get_auth_user(session_api_key=session_api_key)
 """
+
+def get_user_id_from_email(email):
+	user = g.db.execute('select id from user where email==?', [email]).fetchone()
+	if (len(user) == 1):
+		user_id = user[0]
+		return user_id
+	else:
+		return None
+
+@app.route('/list/adduser', methods=['POST'])
+@requires_auth
+def list_add_user():
+	session_api_key = request.get_json()['session_api_key']
+	current_user_id = get_auth_user(session_api_key=session_api_key)
+	content = request.get_json()
+	if not content:
+		abort(400) # invalid request
+	list_id = content.get('list_id')
+	if list_id is None:
+		abort(400)
+	user_to_add_email = content.get('user_email')
+	if user_to_add_email is None:
+		abort(400)
+	list_exists_and_current_user_is_owner = len(g.db.execute('select * from list where owner_id==? and id==?', [current_user_id, list_id]).fetchall())
+	if not list_exists_and_current_user_is_owner:
+		abort(400)
+	user_to_add_id = get_user_id_from_email(email=user_to_add_email)
+	if not user_to_add_id:
+		abort(400)
+	# check to see if the user is already a member of this list
+	already_member = len(g.db.execute('select * from list_member where list_id==? and user_id==?', [list_id,user_to_add_id]).fetchall())
+	if already_member:
+		abort(400)
+	g.db.execute('insert into list_member (list_id, user_id) values (?, ?)', [list_id, user_to_add_id])
+	g.db.commit()
+	return json_ok_response()
+
+@app.route('/list/removeuser', methods=['POST'])
+@requires_auth
+def list_remove_user():
+	session_api_key = request.get_json()['session_api_key']
+	current_user_id = get_auth_user(session_api_key=session_api_key)
+	content = request.get_json()
+	if not content:
+		abort(400) # invalid request
+	# get the list id and check if it's valid
+	list_id = content.get('list_id')
+	if list_id is None:
+		abort(400)
+	# get the user to remove and check if it's valid and they actually belong to this list
+	user_to_remove_id = content.get('user_id')
+	if user_to_remove_id == current_user_id:
+		abort(400) # You can't remove yourself from a list you own! you have to delete it
+	if user_to_remove_id is None:
+		abort(400)
+	list_exists_and_current_user_is_owner = len(g.db.execute('select * from list where owner_id==? and id==?', [current_user_id, list_id]).fetchall())
+	if not list_exists_and_current_user_is_owner:
+		abort(400)
+	user_belongs_to_list = len(g.db.execute('select * from list_member where list_id==? and user_id==?', [list_id, user_to_remove_id]).fetchall())
+	if not user_belongs_to_list:
+		abort(400) # that user doesn't belong to this list, you can't remove them
+	# we have made all of the necessary checks, delete the row from the table where this user is a member of this list!
+	g.db.execute('delete from list_member where list_id==? and user_id==?', [list_id, user_to_remove_id])
+	g.db.commit()
+	return json_ok_response()
+
 
 if __name__ == '__main__':
 	app.run()
