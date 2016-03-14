@@ -1,14 +1,18 @@
 package a342com.linkedlist;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -41,12 +45,11 @@ public class ListOptionsActivity extends AppCompatActivity{
     public static String session_api_key = "";
     public static String password = "";
     public static String list_id = "";
+    public static String list_name = "";
 
     public ArrayList<memberList> memberList2;
     public MyAdapter aa;
     public ListService members_service;
-
-
 
     private class MyAdapter extends ArrayAdapter<memberList> {
         int resource;
@@ -75,20 +78,24 @@ public class ListOptionsActivity extends AppCompatActivity{
 
             ((TextView) newView.findViewById(R.id.member_name)).setText(w.username);
 
-            ImageButton b = (ImageButton)newView.findViewById(R.id.kick_user);
-            b.setTag(w);
-            b.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(
-                            getApplicationContext(),
-                            "removing member " + ((memberList) v.getTag()).user_id,
-                            Toast.LENGTH_LONG
-                    ).show();
-                    remove_member(v);
-                }
-            });
-
+            if(email.equals(w.email)) {
+                ImageButton b = (ImageButton) newView.findViewById(R.id.kick_user);
+                b.setVisibility(View.GONE);
+            } else {
+                ImageButton b = (ImageButton) newView.findViewById(R.id.kick_user);
+                b.setTag(w);
+                b.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(
+                                getApplicationContext(),
+                                "removing member " + ((memberList) v.getTag()).username,
+                                Toast.LENGTH_LONG
+                        ).show();
+                        removeMember(v);
+                    }
+                });
+            }
             return newView;
         }
     }
@@ -101,7 +108,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         setSupportActionBar(toolbar);
 
         memberList2 = new ArrayList<memberList>();
-        aa = new MyAdapter(this, R.layout.sub_list_element, memberList2);
+        aa = new MyAdapter(this, R.layout.activity_list_options_members, memberList2);
         ListView myListView = (ListView) findViewById(R.id.lst_memberlist);
         myListView.setAdapter(aa);
         aa.notifyDataSetChanged();
@@ -119,7 +126,10 @@ public class ListOptionsActivity extends AppCompatActivity{
         session_api_key = prefs.getString("session_api_key", "");
         password = prefs.getString("password", "");
         list_id = prefs.getString("list_id", "");
+        list_name = prefs.getString("list_name", "");
 
+        String t = list_name + "'s Options";
+        ((CollapsingToolbarLayout)findViewById(R.id.list_options_toolbar_layout)).setTitle(t);
         //TODO: set title to name of room
         //((CollapsingToolbarLayout)findViewById(R.id.toolbar_layout)).setTitle(username + "'s Lists");
 
@@ -164,7 +174,7 @@ public class ListOptionsActivity extends AppCompatActivity{
                 Toast.makeText(
                         getApplicationContext(),
                         "Could not connect to server!\n\n"
-                                + "ListActivity().getListsResponse.onFailure():\n"
+                                + "ListOptionsActivity().listItemResponse.onFailure():\n"
                                 + t.toString(),
                         Toast.LENGTH_LONG)
                         .show();
@@ -172,30 +182,90 @@ public class ListOptionsActivity extends AppCompatActivity{
         });
     }
 
-    public void remove_member(View v) {
-        memberList elem = (memberList) v.getTag();
+    public void removeMember(View v) {
         //TODO
+        //define which user to kick
+        memberList clicked = (memberList) v.getTag();
+
+        Call<blankResponse> removedMember = members_service.remove_member(
+                new removeMemberRequest(session_api_key, list_id, clicked.user_id));
+        removedMember.enqueue(new Callback<blankResponse>() {
+            @Override
+            public void onResponse(Response<blankResponse> response) {
+                refreshListOfMembers(new View(getApplicationContext()));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Could not connect to server!\n\n"
+                                + "ListOptionsActivity().removeMember.onFailure():\n"
+                                + t.toString(),
+                        Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
 
         refreshListOfMembers(v);
     }
 
     public void addMember(View v) {
         //TODO
-        //send add_item to server with "empty" item
-        //refresh
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        alert.setTitle("Add a freind");
+        alert.setMessage("via they're email");
+
+// Set an EditText view to get user input
+        final EditText input = new EditText(this);
+        alert.setView(input);
+
+        alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String t = input.getText().toString();
+                Call<blankResponse> addMember = members_service.add_member(
+                        new addMemberRequest(session_api_key, list_id, t));
+
+                addMember.enqueue((new Callback<blankResponse>() {
+                    @Override
+                    public void onResponse(Response<blankResponse> response) {
+                        refreshListOfMembers(new View(getApplicationContext()));
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Toast.makeText(
+                                getApplicationContext(),
+                                "Could not connect to server!\n\n"
+                                        + "ListOptionsActivity().addMember.onFailure():\n"
+                                        + t.toString(),
+                                Toast.LENGTH_LONG)
+                                .show();
+                    }
+                }));
+
+                //refresh
+                refreshListOfMembers(new View(getApplicationContext()));
+            }
+        });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+        alert.show();
+
     }
     public interface ListService {
         @POST("list")
         Call<listItemResponse> get_list(@Body listItemRequest body);
         @POST("list/adduser")
-        Call<blankResponse> add_member(@Body listMemberRequest body);
+        Call<blankResponse> add_member(@Body addMemberRequest body);
         @POST("list/removeuser")
         Call<blankResponse> remove_member(@Body removeMemberRequest body);
     }
-
-
-
-
 }
 
 class removeMemberRequest {
@@ -203,10 +273,22 @@ class removeMemberRequest {
     public String list_id;
     public String user_id;
 
-    removeMemberRequest (String _session_api_key, String _list_id, String _user_id) {
+    removeMemberRequest(String _session_api_key, String _list_id, String _user_id) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.user_id = _user_id;
+    }
+}
+
+class addMemberRequest {
+    public String session_api_key;
+    public String list_id;
+    public String user_email;
+
+    addMemberRequest(String _session_api_key, String _list_id, String _user_email) {
+        this.session_api_key = _session_api_key;
+        this.list_id = _list_id;
+        this.user_email = _user_email;
     }
 }
 

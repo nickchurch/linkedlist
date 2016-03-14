@@ -16,7 +16,7 @@
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/toolbar_layout"
+            android:id="@+id/list_options_toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
@@ -61,7 +61,7 @@
         android:focusable="true"
         android:tint="#ffffff"
         android:scaleType="center"
-        android:onClick="addItem"
+        android:onClick="addMember"
         android:visibility="visible"/>
 
 </android.support.design.widget.CoordinatorLayout>
