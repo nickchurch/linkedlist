@@ -16,7 +16,7 @@
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/toolbar_layout"
+            android:id="@+id/item_list_toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
@@ -72,7 +72,7 @@
         android:clickable="true"
         android:onClick="addItem"
         app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="center|end"
+        app:layout_anchorGravity="bottom|end"
         android:cropToPadding="false"
         android:focusable="true"
         android:visibility="visible"/>
