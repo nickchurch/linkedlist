@@ -8,8 +8,10 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.content.Context;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -81,6 +83,34 @@ public class ListActivity extends AppCompatActivity {
             TextView txt_room_name = (TextView) newView.findViewById(R.id.room_item_name);
             txt_room_name.setText(w.list_name);
 
+            ImageButton b = (ImageButton) newView.findViewById(R.id.room_item_leave);
+
+            b.setTag(w.list_id);
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(
+                            getApplicationContext(),
+                            "clicked delete button on " + v.getTag().toString(),
+                            Toast.LENGTH_LONG
+                            ).show();
+                    removeList(v);
+                }
+            });
+
+            newView.setTag(w.list_id);
+            newView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(
+                            getApplicationContext(),
+                            "clicked item " + v.getTag().toString(),
+                            Toast.LENGTH_LONG
+                    ).show();
+                    gotoList(v);
+                }
+            });
+
             return newView;
         }
     }
@@ -91,7 +121,7 @@ public class ListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        /*
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,14 +130,13 @@ public class ListActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        */
 
         roomList = new ArrayList<RoomElement>();
         aa = new MyAdapter(this, R.layout.sub_list_element, roomList);
         ListView myListView = (ListView) findViewById(R.id.lst_msglist);
         myListView.setAdapter(aa);
         aa.notifyDataSetChanged();
-
-        refreshList(new View(getApplicationContext()));
     }
 
     @Override
@@ -146,7 +175,7 @@ public class ListActivity extends AppCompatActivity {
             @Override
             public void onResponse(Response<getListsResponse> response) {
                 if (response.isSuccess()) {
-                    List<Room> roomsResponse = response.body().linkedlists;
+                    List<Room> roomsResponse = response.body().lists;
                     while (!roomsResponse.isEmpty()) {
                         Room elem = roomsResponse.remove(roomsResponse.size()-1);
                         RoomElement le = new RoomElement(
@@ -209,10 +238,12 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public void removeList(View v) {
+        String list_id = v.getTag().toString();
         //TODO
     }
 
     public void gotoList(View v) {
+        String list_id = v.getTag().toString();
         //TODO
     }
 
@@ -227,11 +258,12 @@ public class ListActivity extends AppCompatActivity {
 }
 
 class createListResponse {
-    public String result;
+    public String list_name;
     public String list_id;
 
-    createListResponse (String _id) {
+    createListResponse (String _id, String _name) {
         this.list_id = _id;
+        this.list_name = _name;
     }
 }
 
@@ -245,7 +277,7 @@ class getListsRequest {
 
 class getListsResponse {
     public String result;
-    public List<Room> linkedlists = new ArrayList<Room>();
+    public List<Room> lists = new ArrayList<Room>();
 }
 
 class Room {

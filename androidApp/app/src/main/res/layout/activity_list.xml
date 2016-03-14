@@ -41,8 +41,8 @@
         tools:listitem="@layout/sub_list_element"
         android:divider="#424242"
         android:dividerHeight="1px"
-        android:clickable="true"
-        />
+        android:clickable="false"
+        android:focusable="false"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -51,12 +51,13 @@
         android:layout_margin="@dimen/fab_margin"
         android:src="@android:drawable/ic_input_add"
         app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"
+        app:layout_anchorGravity="center|end"
         android:clickable="true"
         android:cropToPadding="false"
         android:focusable="false"
         android:tint="#ffffff"
         android:scaleType="center"
-        android:onClick="createList"/>
+        android:onClick="createList"
+        android:visibility="visible"/>
 
 </android.support.design.widget.CoordinatorLayout>
