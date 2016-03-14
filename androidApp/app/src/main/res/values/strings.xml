@@ -11,4 +11,6 @@
     <string name="title_activity_list">Subscribed Lists</string>
     <string name="action_settings">Settings</string>
     <string name="room_desc_leave">Leave List</string>
+    <string name="title_activity_list_items">List Name Here</string>
+
 </resources>
