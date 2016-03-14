@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="a342com.linkedlist.ListActivity">
+    tools:context="a342com.linkedlist.ListOptionsActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -21,36 +21,33 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            android:paddingRight="20dp"
+            android:paddingTop="5dp">
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
-                app:popupTheme="@style/AppTheme.PopupOverlay"/>
+                app:popupTheme="@style/AppTheme.PopupOverlay">
+
+            </android.support.v7.widget.Toolbar>
 
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <ListView
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:id="@+id/swipe_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <ListView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/lst_msglist"
-            tools:listitem="@layout/sub_list_element"
-            android:divider="#424242"
-            android:dividerHeight="1px"
-            android:clickable="false"
-            android:focusable="false"/>
+        android:layout_height="match_parent"
+        android:id="@+id/lst_memberlist"
+        tools:listitem="@layout/activity_list_options_members"
+        android:divider="#424242"
+        android:dividerHeight="1px"
+        android:clickable="false"
+        android:focusable="false"/>
 
-
-    </android.support.v4.widget.SwipeRefreshLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
@@ -61,9 +58,10 @@
         app:layout_anchorGravity="center|end"
         android:clickable="true"
         android:cropToPadding="false"
-        android:focusable="false"
+        android:focusable="true"
         android:tint="#ffffff"
         android:scaleType="center"
-        android:onClick="createList"
+        android:onClick="addItem"
         android:visibility="visible"/>
+
 </android.support.design.widget.CoordinatorLayout>
