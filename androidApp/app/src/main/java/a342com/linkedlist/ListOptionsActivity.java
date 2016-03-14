@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.reflect.Member;
@@ -83,9 +84,9 @@ public class ListOptionsActivity extends AppCompatActivity{
                 newView = (LinearLayout) convertView;
             }
 
-            ((EditText) findViewById(R.id.listitem_value)).setText(w.value);
+            ((TextView) findViewById(R.id.member_name)).setText(w.value);
 
-            ImageButton b = (ImageButton)findViewById(R.id.listitem_remove);
+            ImageButton b = (ImageButton)findViewById(R.id.kick_user);
             b.setTag(w);
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -152,13 +153,13 @@ public class ListOptionsActivity extends AppCompatActivity{
     public void refreshListOfMembers(View v) {
         aa.clear();
 
-        Call<getListsResponse> queryMembers = members_service.get_list_members(new listMemberRequest(session_api_key, list_id, null));
+        Call<getListsResponse> queryMembers = members_service.get_list(new listItemRequest(session_api_key, list_id, null));
 
         queryMembers.enqueue(new Callback<getListsResponse>() {
             @Override
             public void onResponse(Response<getListsResponse> response) {
                 if (response.isSuccess()) {
-                    List<Room> roomsResponse = response.body().lists;
+                    List<listItemElem> roomsResponse = response.body().list_members;
                     while (!roomsResponse.isEmpty()) {
                         Room elem = roomsResponse.remove(roomsResponse.size() - 1);
                         MemberList le = new MemberList(
@@ -199,10 +200,10 @@ public class ListOptionsActivity extends AppCompatActivity{
         //refresh
     }
     public interface ListService {
+        @POST("list")
+        Call<getListsResponse> get_list(@Body listItemRequest body);
         @POST("list/adduser")
         Call<blankResponse> add_member(@Body listMemberRequest body);
-        @POST("list/list_members")
-        Call<getListsResponse> get_list_members(@Body listMemberRequest body);
         @POST("list/removeuser")
         Call<blankResponse> remove_member(@Body removeMemberRequest body);
     }
@@ -227,11 +228,11 @@ class removeMemberRequest {
 class listMemberRequest {
     public String session_api_key;
     public String list_id;
-    public ListOptionsActivity.MemberList item;
+    public ListOptionsActivity.MemberList member;
 
     listMemberRequest (String _session_api_key, String _list_id, ListOptionsActivity.MemberList _member) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
-        this.item = _member;
+        this.member = _member;
     }
 }
