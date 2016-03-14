@@ -242,7 +242,7 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public void removeList(View v) {
-        String list_id = v.getTag().toString();
+        String list_id = ((RoomElement) v.getTag()).list_id;
 
         Call<blankResponse> removeUser = lists_service.remove_user(new removeUserRequest(session_api_key, list_id, email));
         removeUser.enqueue(new Callback<blankResponse>() {

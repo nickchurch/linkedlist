@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -53,12 +54,12 @@ public class ListItemsActivity extends AppCompatActivity {
 
     public class listItemElem {
         public String value;
-        public String item_id;
+        public String id;
         public int checked;
 
-        listItemElem(String _value, String _item_id, int _checked) {
+        listItemElem(String _value, String _id, int _checked) {
             this.value = _value;
-            this.item_id = _item_id;
+            this.id = _id;
             this.checked = _checked;
         }
     }
@@ -91,9 +92,30 @@ public class ListItemsActivity extends AppCompatActivity {
             }
 
             EditText edt = ((EditText) newView.findViewById(R.id.listitem_value));
+            edt.setTag(w);
             edt.setText(w.value);
-            boolean whyJava = (w.checked != 0);
-            ((CheckBox) newView.findViewById(R.id.listitem_chk)).setChecked(whyJava);
+            edt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (!hasFocus) {
+                        /*
+                        Toast.makeText(
+                                getApplicationContext(),
+                                "updating " + ((listItemElem) v.getTag()).id + " to " + ((EditText)v.findViewById(R.id.listitem_value)).getText().toString(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                        */
+
+                        listItemElem new_elem = new listItemElem(
+                                ((EditText)v.findViewById(R.id.listitem_value)).getText().toString(),
+                                ((listItemElem)v.getTag()).id,
+                                ((listItemElem)v.getTag()).checked
+                        );
+                        v.setTag(new_elem);
+                        updateItem(v);
+                    }
+                }
+            });
 
 
             ImageButton b = (ImageButton) newView.findViewById(R.id.listitem_remove);
@@ -101,12 +123,31 @@ public class ListItemsActivity extends AppCompatActivity {
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    /*
                     Toast.makeText(
                             getApplicationContext(),
-                            "clicked imagebutton " + ((listItemElem) v.getTag()).item_id,
+                            "clicked imagebutton " + ((listItemElem) v.getTag()).id,
                             Toast.LENGTH_LONG
                     ).show();
-                    //removeItem(v);
+                    */
+                    removeItem(v);
+                }
+            });
+
+
+            CheckBox chk = (CheckBox) newView.findViewById(R.id.listitem_chk);
+            chk.setChecked(w.checked != 0);
+            chk.setTag(w);
+            chk.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listItemElem new_elem = new listItemElem(
+                            ((listItemElem)v.getTag()).value,
+                            ((listItemElem)v.getTag()).id,
+                            (((CheckBox)v.findViewById(R.id.listitem_chk)).isChecked())?1:0
+                    );
+                    v.setTag(new_elem);
+                    updateItem(v);
                 }
             });
 
@@ -127,6 +168,16 @@ public class ListItemsActivity extends AppCompatActivity {
         myListView.setAdapter(aa);
         aa.notifyDataSetChanged();
 
+        final SwipeRefreshLayout swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        swipeLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light);
+        swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshList(new View(getApplicationContext()));
+                swipeLayout.setRefreshing(false);
+            }
+        });
     }
 
     @Override
@@ -193,24 +244,65 @@ public class ListItemsActivity extends AppCompatActivity {
 
     public void removeItem(View v) {
         listItemElem elem = (listItemElem) v.getTag();
-        //TODO
 
+        Call<blankResponse> removeItem = items_service.remove_item_from_list(
+                new removeItemRequest(session_api_key, list_id, elem.id));
+
+        removeItem.enqueue(new Callback<blankResponse>() {
+            @Override
+            public void onResponse(Response<blankResponse> response) {
+                refreshList(new View(getApplicationContext()));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                /*
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Could not connect to server!\n\n"
+                                + "ListItemsActivity().addItem.onFailure():\n"
+                                + t.toString(),
+                        Toast.LENGTH_LONG)
+                        .show();
+                */
+            }
+        });
+
+        try {Thread.sleep(100);} catch (InterruptedException e) {}
         refreshList(v);
     }
 
     public void updateItem(View v) {
-        listItemElem elem = (listItemElem) v.getTag();
-        //TODO
-        refreshList(v);  //Do we need this? the value should be there
+        listItemElem new_elem = (listItemElem) v.getTag();
+
+        Call<blankResponse> updateItem = items_service.update_list_item(
+                new listItemRequest(session_api_key, list_id, new_elem));
+        updateItem.enqueue(new Callback<blankResponse>() {
+            @Override
+            public void onResponse(Response<blankResponse> response) {
+                refreshList(new View(getApplicationContext()));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                /*
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Could not connect to server!\n\n"
+                                + "ListItemsActivity().addItem.onFailure():\n"
+                                + t.toString(),
+                        Toast.LENGTH_LONG)
+                        .show();
+                */
+            }
+        });
     }
 
     public void addItem(View v) {
-        //TODO
-
         Call<blankResponse> addItem = items_service.add_item_to_list(
                 new listItemRequest(session_api_key, list_id,
                         new listItemElem(
-                                (new BigInteger(130, new SecureRandom()).toString(32)),
+                                (new BigInteger(130, new SecureRandom()).toString(32)).substring(0, 3),
                                 Integer.toString(item_id_counter),
                                 0)));
         item_id_counter++;
@@ -222,6 +314,7 @@ public class ListItemsActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Throwable t) {
+                /*
                 Toast.makeText(
                         getApplicationContext(),
                         "Could not connect to server!\n\n"
@@ -229,9 +322,11 @@ public class ListItemsActivity extends AppCompatActivity {
                                 + t.toString(),
                         Toast.LENGTH_LONG)
                         .show();
+                */
             }
         });
 
+        try {Thread.sleep(100);} catch (InterruptedException e) {}
         refreshList(v);
     }
 
