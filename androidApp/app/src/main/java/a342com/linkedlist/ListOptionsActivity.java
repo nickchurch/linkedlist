@@ -185,10 +185,13 @@ public class ListOptionsActivity extends AppCompatActivity{
     public void removeMember(View v) {
         //TODO
         //define which user to kick
-        memberList clicked = (memberList) v.getTag();
+        //SHOULD BE EMAIL. NOT USER_ID.
+        //memberList clicked = (memberList) v.getTag();
+
+        String userId = "2";
 
         Call<blankResponse> removedMember = members_service.remove_member(
-                new removeMemberRequest(session_api_key, list_id, clicked.user_id));
+                new removeMemberRequest(session_api_key, list_id, userId));
         removedMember.enqueue(new Callback<blankResponse>() {
             @Override
             public void onResponse(Response<blankResponse> response) {

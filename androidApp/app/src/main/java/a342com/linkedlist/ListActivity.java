@@ -1,5 +1,7 @@
 package a342com.linkedlist;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.content.Context;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -174,7 +177,7 @@ public class ListActivity extends AppCompatActivity {
     public void refreshList() {
         aa.clear();
 
-        Call<getListsResponse> queryLists = lists_service.get_lists(new getListsRequest(session_api_key));
+        Call<getListsResponse> queryLists = lists_service.get_lists(new getListsRequest(session_api_key, ""));
 
         queryLists.enqueue(new Callback<getListsResponse>() {
             @Override
@@ -210,35 +213,61 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public void createList(View v) {
-        Call<createListResponse> createList = lists_service.create_list(new getListsRequest(session_api_key));
 
-        createList.enqueue(new Callback<createListResponse>() {
-            @Override
-            public void onResponse(Response<createListResponse> response) {
-                if (response.isSuccess()) {
-                    createListResponse resp = response.body();
-                    Toast.makeText(
-                            getApplicationContext(),
-                            "created list=" + resp.list_id,
-                            Toast.LENGTH_LONG)
-                            .show();
-                    refreshList();
-                } else {
-                    //TODO: error
-                }
-            }
 
-            @Override
-            public void onFailure(Throwable t) {
-                Toast.makeText(
-                        getApplicationContext(),
-                        "Could not connect to server!\n\n"
-                                + "ListActivity().getListsResponse.onFailure():\n"
-                                + t.toString(),
-                        Toast.LENGTH_LONG)
-                        .show();
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        alert.setTitle("Add a list");
+        alert.setMessage("Specify a name");
+
+// Set an EditText view to get user input
+        final EditText input = new EditText(this);
+        alert.setView(input);
+
+        alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String t = input.getText().toString();
+
+                Call<createListResponse> createList = lists_service.create_list(new getListsRequest(session_api_key, t));
+
+                createList.enqueue(new Callback<createListResponse>() {
+                    @Override
+                    public void onResponse(Response<createListResponse> response) {
+                        if (response.isSuccess()) {
+                            createListResponse resp = response.body();
+                            Toast.makeText(
+                                    getApplicationContext(),
+                                    "created list=" + resp.list_id,
+                                    Toast.LENGTH_LONG)
+                                    .show();
+                        } else {
+                            //TODO: error
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Toast.makeText(
+                                getApplicationContext(),
+                                "Could not connect to server!\n\n"
+                                        + "ListActivity().getListsResponse.onFailure():\n"
+                                        + t.toString(),
+                                Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+
+                //refresh
+                refreshList(new View(getApplicationContext()));
             }
         });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+        alert.show();
     }
 
     public void removeList(View v) {
@@ -329,9 +358,10 @@ class removeUserRequest {
 
 class getListsRequest {
     public String session_api_key;
-
-    getListsRequest(String _session_api_key) {
+    public String name;
+    getListsRequest(String _session_api_key, String _name) {
         this.session_api_key = _session_api_key;
+        this.name = _name;
     }
 }
 
