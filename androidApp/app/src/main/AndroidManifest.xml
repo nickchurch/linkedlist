@@ -27,6 +27,12 @@
             android:label="@string/title_activity_list_items"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".ListOptionsActivity"
+            android:label="@string/title_activity_list_options"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
     </application>
 
 </manifest>

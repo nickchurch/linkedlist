@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.GsonConverterFactory;
@@ -137,7 +140,18 @@ public class ListActivity extends AppCompatActivity {
         ListView myListView = (ListView) findViewById(R.id.lst_msglist);
         myListView.setAdapter(aa);
         aa.notifyDataSetChanged();
+
+        final SwipeRefreshLayout swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        swipeLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+                                            android.R.color.holo_green_light);
+        swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override public void onRefresh() {
+                refreshList(new View(getApplicationContext()));
+                swipeLayout.setRefreshing(false);
+            }
+        });
     }
+
 
     @Override
     protected void onResume() {
@@ -201,6 +215,7 @@ public class ListActivity extends AppCompatActivity {
                         .show();
             }
         });
+
     }
 
     public void createList(View v) {

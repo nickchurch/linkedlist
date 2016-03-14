@@ -21,7 +21,9 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            android:paddingRight="20dp"
+            android:paddingTop="5dp">
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -29,6 +31,21 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/AppTheme.PopupOverlay">
+
+                <Button
+                    android:id="@+id/options"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="top|end"
+                    android:src="@android:drawable/ic_input_add"
+                    android:text="@string/three"
+                    android:singleLine="false"
+                    android:textSize="20sp"
+                    android:background="#003f45bc"
+                    android:enabled="true"
+                    android:clickable="true"
+                    android:onClick="goto_ListOptions"/>
+
             </android.support.v7.widget.Toolbar>
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
@@ -55,6 +72,9 @@
         android:clickable="true"
         android:onClick="addItem"
         app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"/>
+        app:layout_anchorGravity="center|end"
+        android:cropToPadding="false"
+        android:focusable="true"
+        android:visibility="visible"/>
 
 </android.support.design.widget.CoordinatorLayout>
