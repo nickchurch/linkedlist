@@ -64,26 +64,27 @@ public class ListItemsActivity extends AppCompatActivity {
     public static String list_id = "";
 
     public ArrayList<ListItem> listItems;
-    public MyAdapter aa;
+    public MyAdapter2 aa;
     public ItemsService items_service;
 
     public class ListItem {
         public String value;
         public String item_id;
-        public boolean checked;
+        public int checked;
 
-        ListItem (String _value, String _item_id, boolean _checked) {
+        ListItem (String _value, String _item_id, int _checked) {
             this.value = _value;
             this.item_id = _item_id;
             this.checked = _checked;
         }
     }
 
-    private class MyAdapter extends ArrayAdapter<ListItem> {
+    private class MyAdapter2 extends ArrayAdapter<ListItem> {
         int resource;
         Context context;
+        int currentlyFocusedRow;
 
-        public MyAdapter (Context _context, int _resource, List<ListItem> _listitems) {
+        public MyAdapter2 (Context _context, int _resource, List<ListItem> _listitems) {
             super(_context, _resource, _listitems);
             resource = _resource;
             context = _context;
@@ -91,12 +92,12 @@ public class ListItemsActivity extends AppCompatActivity {
         }
 
         @Override
-        public View getView (int position, View convertView, ViewGroup parent) {
+        public View getView (final int position, View convertView, ViewGroup parent) {
             LinearLayout newView;
             ListItem w = getItem(position);
 
             if (convertView == null) {
-                newView = new LinearLayout(getContext());
+                newView = new LinearLayout(getApplicationContext());
                 String inflater = Context.LAYOUT_INFLATER_SERVICE;
                 LayoutInflater vi = (LayoutInflater) getContext().getSystemService(inflater);
                 vi.inflate(resource, newView, true);
@@ -104,10 +105,12 @@ public class ListItemsActivity extends AppCompatActivity {
                 newView = (LinearLayout) convertView;
             }
 
-            ((EditText) findViewById(R.id.listitem_value)).setText(w.value);
-            ((CheckBox) findViewById(R.id.listitem_chk)).setChecked(w.checked);
+            EditText edt = ((EditText) newView.findViewById(R.id.listitem_value));
+            edt.setText(w.value);
+            boolean whyJava = (w.checked != 0);
+            ((CheckBox) newView.findViewById(R.id.listitem_chk)).setChecked(whyJava);
 
-            ImageButton b = (ImageButton)findViewById(R.id.listitem_remove);
+            ImageButton b = (ImageButton)newView.findViewById(R.id.listitem_remove);
             b.setTag(w);
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -121,7 +124,7 @@ public class ListItemsActivity extends AppCompatActivity {
                 }
             });
 
-            CheckBox c = (CheckBox)findViewById(R.id.listitem_chk);
+            CheckBox c = (CheckBox)newView.findViewById(R.id.listitem_chk);
             c.setTag(w);
             c.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -135,18 +138,20 @@ public class ListItemsActivity extends AppCompatActivity {
                 }
             });
 
-            EditText txt = (EditText)findViewById(R.id.listitem_value);
+            EditText txt = (EditText)newView.findViewById(R.id.listitem_value);
             txt.setTag(w);
             txt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus) {
+                    if (!hasFocus && (currentlyFocusedRow == position)) {
                         Toast.makeText(
                                 getApplicationContext(),
                                 "item " + ((ListItem) v.getTag()).item_id + "changed to:" + ((ListItem)v.getTag()).value,
                                 Toast.LENGTH_LONG
                         ).show();
                         updateItem(v);
+                    } else {
+                        currentlyFocusedRow = position;
                     }
                 }
             });
@@ -163,7 +168,7 @@ public class ListItemsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         listItems = new ArrayList<ListItem>();
-        aa = new MyAdapter(this, R.layout.sub_list_element, listItems);
+        aa = new MyAdapter2(this, R.layout.content_list_items, listItems);
         ListView myListView = (ListView) findViewById(R.id.lst_itemlist);
         myListView.setAdapter(aa);
         aa.notifyDataSetChanged();
@@ -202,6 +207,37 @@ public class ListItemsActivity extends AppCompatActivity {
     public void refreshList(View v) {
         //TODO: preferably add new elements at the top so it looks right after an addItem() call
         //basically the same as the ListActivity version
+
+        aa.clear();
+
+        Call<listItemResponse> getItems = items_service.get_items_list(new listItemRequest(session_api_key, list_id));
+        getItems.enqueue(new Callback<listItemResponse>() {
+            @Override
+            public void onResponse(Response<listItemResponse> response) {
+                if (response.isSuccess()) {
+
+                    List<ListItem> items = response.body().list_items;
+                    while (!items.isEmpty()) {
+                        ListItem elem = items.remove(items.size() - 1);
+                        listItems.add(elem);
+                    }
+                    aa.notifyDataSetChanged();
+                } else {
+                    //TODO: error
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Could not connect to server!\n\n"
+                                + "ListItemsActivity().refreshList.onFailure():\n"
+                                + t.toString(),
+                        Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
     }
 
     public void removeItem(View v) {
@@ -219,8 +255,29 @@ public class ListItemsActivity extends AppCompatActivity {
 
     public void addItem(View v) {
         //TODO
-        //send add_item to server with "empty" item
-        //refresh
+
+        Call<blankResponse> addItem = items_service.add_item_to_list(
+                new listItemRequest(session_api_key, list_id,
+                        new ListItem("test", "", 0)));
+        addItem.enqueue(new Callback<blankResponse>() {
+            @Override
+            public void onResponse(Response<blankResponse> response) {
+                refreshList(new View(getApplicationContext()));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Could not connect to server!\n\n"
+                                + "ListItemsActivity().addItem.onFailure():\n"
+                                + t.toString(),
+                        Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
+
+        refreshList(v);
     }
 
     public void goto_ListOptions(View v) {
@@ -228,7 +285,10 @@ public class ListItemsActivity extends AppCompatActivity {
     }
 
     public interface ItemsService {
-        @POST("list/additemtolist/")
+        @POST("list")
+        Call<listItemResponse> get_items_list(@Body listItemRequest body);
+
+        @POST("list/additemtolist")
         Call<blankResponse> add_item_to_list(@Body listItemRequest body);
 
         @POST("list/removeitemfromlist")
@@ -251,6 +311,20 @@ class removeItemRequest {
     }
 }
 
+class listItemResponse {
+    public String list_id;
+    public String list_name;
+    public String owner_id;
+    public List<memberList> list_members = new ArrayList<memberList>();
+    public List<ListItemsActivity.ListItem> list_items = new ArrayList<ListItemsActivity.ListItem>();
+}
+
+class memberList {
+    public String user_id;
+    public String username;
+    public String email;
+}
+
 class listItemRequest {
     public String session_api_key;
     public String list_id;
@@ -260,5 +334,11 @@ class listItemRequest {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.item = _item;
+    }
+
+    listItemRequest (String _session_api_key, String _list_id) {
+        this.session_api_key = _session_api_key;
+        this.list_id = _list_id;
+        this.item = null;
     }
 }
