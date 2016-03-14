@@ -402,7 +402,10 @@ def list_remove_user():
 	# get the user to remove and check if it's valid and they actually belong to this list
 	user_to_remove_id = content.get('user_id')
 	if user_to_remove_id == current_user_id:
-		abort(400) # You can't remove yourself from a list you own! you have to delete it
+		# if you remove yourself from a list you own, the whole list is deleted, until we support ownership change
+		g.db.execute('delete from list where id==?', [list_id])
+		d.db.commit()
+		return json_ok_response()
 	if user_to_remove_id is None:
 		abort(400)
 	list_exists_and_current_user_is_owner = len(g.db.execute('select * from list where owner_id==? and id==?', [current_user_id, list_id]).fetchall())
