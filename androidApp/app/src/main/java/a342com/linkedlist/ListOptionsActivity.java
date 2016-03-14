@@ -9,15 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,25 +42,17 @@ public class ListOptionsActivity extends AppCompatActivity{
     public static String password = "";
     public static String list_id = "";
 
-    public ArrayList<MemberList> memberList;
+    public ArrayList<memberList> memberList2;
     public MyAdapter aa;
     public ListService members_service;
 
-    public class MemberList {
-        public String value;
-        public String member_id;
 
-        MemberList (String _value, String _member_id) {
-            this.value = _value;
-            this.member_id = _member_id;
-        }
-    }
 
-    private class MyAdapter extends ArrayAdapter<MemberList> {
+    private class MyAdapter extends ArrayAdapter<memberList> {
         int resource;
         Context context;
 
-        public MyAdapter (Context _context, int _resource, List<MemberList> _memberList) {
+        public MyAdapter (Context _context, int _resource, List<memberList> _memberList) {
             super(_context, _resource, _memberList);
             resource = _resource;
             context = _context;
@@ -73,7 +62,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         @Override
         public View getView (int position, View convertView, ViewGroup parent) {
             LinearLayout newView;
-            MemberList w = getItem(position);
+            memberList w = getItem(position);
 
             if (convertView == null) {
                 newView = new LinearLayout(getContext());
@@ -84,7 +73,7 @@ public class ListOptionsActivity extends AppCompatActivity{
                 newView = (LinearLayout) convertView;
             }
 
-            ((TextView) findViewById(R.id.member_name)).setText(w.value);
+            ((TextView) findViewById(R.id.member_name)).setText(w.username);
 
             ImageButton b = (ImageButton)findViewById(R.id.kick_user);
             b.setTag(w);
@@ -93,7 +82,7 @@ public class ListOptionsActivity extends AppCompatActivity{
                 public void onClick(View v) {
                     Toast.makeText(
                             getApplicationContext(),
-                            "removing member " + ((MemberList) v.getTag()).member_id,
+                            "removing member " + ((memberList) v.getTag()).user_id,
                             Toast.LENGTH_LONG
                     ).show();
                     remove_member(v);
@@ -111,8 +100,8 @@ public class ListOptionsActivity extends AppCompatActivity{
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        memberList = new ArrayList<MemberList>();
-        aa = new MyAdapter(this, R.layout.sub_list_element, memberList);
+        memberList2 = new ArrayList<memberList>();
+        aa = new MyAdapter(this, R.layout.sub_list_element, memberList2);
         ListView myListView = (ListView) findViewById(R.id.lst_memberlist);
         myListView.setAdapter(aa);
         aa.notifyDataSetChanged();
@@ -153,20 +142,16 @@ public class ListOptionsActivity extends AppCompatActivity{
     public void refreshListOfMembers(View v) {
         aa.clear();
 
-        Call<getListsResponse> queryMembers = members_service.get_list(new listItemRequest(session_api_key, list_id, null));
+        Call<listItemResponse> queryMembers = members_service.get_list(new listItemRequest(session_api_key, list_id));
+        queryMembers.enqueue(new Callback<listItemResponse>() {
 
-        queryMembers.enqueue(new Callback<getListsResponse>() {
             @Override
-            public void onResponse(Response<getListsResponse> response) {
+            public void onResponse(Response<listItemResponse> response) {
                 if (response.isSuccess()) {
-                    List<listItemElem> roomsResponse = response.body().list_members;
-                    while (!roomsResponse.isEmpty()) {
-                        Room elem = roomsResponse.remove(roomsResponse.size() - 1);
-                        MemberList le = new MemberList(
-                                elem.list_id,
-                                elem.list_name
-                        );
-                        memberList.add(le);
+                    List<memberList> mems = response.body().list_members;
+                    while (!mems.isEmpty()) {
+                        memberList le = mems.remove(mems.size() - 1);
+                        memberList2.add(le);
                     }
                     aa.notifyDataSetChanged();
                 } else {
@@ -188,7 +173,7 @@ public class ListOptionsActivity extends AppCompatActivity{
     }
 
     public void remove_member(View v) {
-        MemberList elem = (MemberList) v.getTag();
+        memberList elem = (memberList) v.getTag();
         //TODO
 
         refreshListOfMembers(v);
@@ -201,7 +186,7 @@ public class ListOptionsActivity extends AppCompatActivity{
     }
     public interface ListService {
         @POST("list")
-        Call<getListsResponse> get_list(@Body listItemRequest body);
+        Call<listItemResponse> get_list(@Body listItemRequest body);
         @POST("list/adduser")
         Call<blankResponse> add_member(@Body listMemberRequest body);
         @POST("list/removeuser")
@@ -228,9 +213,9 @@ class removeMemberRequest {
 class listMemberRequest {
     public String session_api_key;
     public String list_id;
-    public ListOptionsActivity.MemberList member;
+    public memberList member;
 
-    listMemberRequest (String _session_api_key, String _list_id, ListOptionsActivity.MemberList _member) {
+    listMemberRequest (String _session_api_key, String _list_id, memberList _member) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.member = _member;
