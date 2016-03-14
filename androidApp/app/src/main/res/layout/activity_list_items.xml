@@ -32,21 +32,21 @@
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/AppTheme.PopupOverlay">
 
-            <Button
-                android:id="@+id/options"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="top|end"
-                android:src="@android:drawable/ic_input_add"
-                android:text="@string/three"
-                android:singleLine="false"
-                android:textSize="20sp"
-                android:background="#003f45bc"
-                android:enabled="true"
-                android:clickable="true"
-                android:onClick="goto_ListOptions"/>
-            </android.support.v7.widget.Toolbar>
+                <Button
+                    android:id="@+id/options"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="top|end"
+                    android:src="@android:drawable/ic_input_add"
+                    android:text="@string/three"
+                    android:singleLine="false"
+                    android:textSize="20sp"
+                    android:background="#003f45bc"
+                    android:enabled="true"
+                    android:clickable="true"
+                    android:onClick="goto_ListOptions"/>
 
+            </android.support.v7.widget.Toolbar>
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
@@ -67,14 +67,14 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         android:src="@android:drawable/ic_input_add"
-        app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="center|end"
-        android:clickable="true"
-        android:cropToPadding="false"
-        android:focusable="true"
         android:tint="#ffffff"
         android:scaleType="center"
+        android:clickable="true"
         android:onClick="addItem"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="center|end"
+        android:cropToPadding="false"
+        android:focusable="true"
         android:visibility="visible"/>
 
 </android.support.design.widget.CoordinatorLayout>
