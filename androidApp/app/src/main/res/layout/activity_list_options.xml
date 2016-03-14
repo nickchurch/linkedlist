@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="a342com.linkedlist.ListItemsActivity">
+    tools:context="a342com.linkedlist.ListOptionsActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -32,19 +32,6 @@
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/AppTheme.PopupOverlay">
 
-            <Button
-                android:id="@+id/options"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="top|end"
-                android:src="@android:drawable/ic_input_add"
-                android:text="@string/three"
-                android:singleLine="false"
-                android:textSize="20sp"
-                android:background="#003f45bc"
-                android:enabled="true"
-                android:clickable="true"
-                android:onClick="goto_ListOptions"/>
             </android.support.v7.widget.Toolbar>
 
         </android.support.design.widget.CollapsingToolbarLayout>
@@ -54,8 +41,8 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/lst_itemlist"
-        tools:listitem="@layout/content_list_items"
+        android:id="@+id/lst_memberlist"
+        tools:listitem="@layout/activity_list_options_members"
         android:divider="#424242"
         android:dividerHeight="1px"
         android:clickable="false"

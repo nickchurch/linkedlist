@@ -7,10 +7,13 @@
     <string name="login_btn_create">Create New Account</string>
     <string name="create_hint_nickname">Username</string>
     <string name="create_btn_create">Create Account</string>
-    <string name="http_base_url">http://10.0.2.2:5000/</string>
+    <string name="http_base_url">http://128.114.104.57:15633/</string>
     <string name="title_activity_list">Subscribed Lists</string>
+    <string name="title_activity_list_options">List Options</string>
     <string name="action_settings">Settings</string>
+    <string name="kick_user">Kick User</string>
     <string name="room_desc_leave">Leave List</string>
     <string name="title_activity_list_items">List Name Here</string>
+    <string name="three">三</string>
 
 </resources>

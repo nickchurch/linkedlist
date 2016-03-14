@@ -33,17 +33,24 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <ListView
+    <android.support.v4.widget.SwipeRefreshLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:id="@+id/swipe_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/lst_msglist"
-        tools:listitem="@layout/sub_list_element"
-        android:divider="#424242"
-        android:dividerHeight="1px"
-        android:clickable="false"
-        android:focusable="false"/>
+        android:layout_height="match_parent">
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/lst_msglist"
+            tools:listitem="@layout/sub_list_element"
+            android:divider="#424242"
+            android:dividerHeight="1px"
+            android:clickable="false"
+            android:focusable="false"/>
 
+
+    </android.support.v4.widget.SwipeRefreshLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
@@ -51,7 +58,7 @@
         android:layout_margin="@dimen/fab_margin"
         android:src="@android:drawable/ic_input_add"
         app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="top|end"
+        app:layout_anchorGravity="center|end"
         android:clickable="true"
         android:cropToPadding="false"
         android:focusable="false"
@@ -59,5 +66,4 @@
         android:scaleType="center"
         android:onClick="createList"
         android:visibility="visible"/>
-
 </android.support.design.widget.CoordinatorLayout>

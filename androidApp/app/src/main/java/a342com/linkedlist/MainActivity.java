@@ -2,12 +2,16 @@ package a342com.linkedlist;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.util.logging.Handler;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.GsonConverterFactory;
@@ -40,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         email = prefs.getString("email", "");
         session_api_key = prefs.getString("session_api_key", "");
         password = prefs.getString("password", "");
+
     }
 
     @Override

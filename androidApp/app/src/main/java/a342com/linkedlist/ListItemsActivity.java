@@ -225,6 +225,14 @@ public class ListItemsActivity extends AppCompatActivity {
 
     public void goto_ListOptions(View v) {
         //TODO: we also need a button for this
+        Toast.makeText(
+                getApplicationContext(),
+                "going to List Options",
+                Toast.LENGTH_LONG)
+                .show();
+
+        Intent intent = new Intent(this, ListOptionsActivity.class);
+        startActivity(intent);
     }
 
     public interface ItemsService {
