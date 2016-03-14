@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="a342com.linkedlist.ListActivity">
+    tools:context="a342com.linkedlist.ListItemsActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -37,8 +37,8 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/lst_msglist"
-        tools:listitem="@layout/sub_list_element"
+        android:id="@+id/lst_itemlist"
+        tools:listitem="@layout/content_list_items"
         android:divider="#424242"
         android:dividerHeight="1px"
         android:clickable="false"
@@ -49,15 +49,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@android:drawable/ic_dialog_email"
         app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="top|end"
-        android:clickable="true"
-        android:cropToPadding="false"
-        android:focusable="false"
-        android:tint="#ffffff"
-        android:scaleType="center"
-        android:onClick="createList"
-        android:visibility="visible"/>
+        app:layout_anchorGravity="bottom|end"/>
 
 </android.support.design.widget.CoordinatorLayout>

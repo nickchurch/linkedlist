@@ -1,5 +1,6 @@
 package a342com.linkedlist;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -28,7 +29,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.http.Body;
-
 import retrofit2.http.POST;
 
 public class ListActivity extends AppCompatActivity {
@@ -91,7 +91,7 @@ public class ListActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Toast.makeText(
                             getApplicationContext(),
-                            "clicked delete button on " + v.getTag().toString(),
+                            "leaving list " + v.getTag().toString(),
                             Toast.LENGTH_LONG
                             ).show();
                     removeList(v);
@@ -177,7 +177,7 @@ public class ListActivity extends AppCompatActivity {
                 if (response.isSuccess()) {
                     List<Room> roomsResponse = response.body().lists;
                     while (!roomsResponse.isEmpty()) {
-                        Room elem = roomsResponse.remove(roomsResponse.size()-1);
+                        Room elem = roomsResponse.remove(roomsResponse.size() - 1);
                         RoomElement le = new RoomElement(
                                 elem.list_id,
                                 elem.list_name
@@ -203,7 +203,6 @@ public class ListActivity extends AppCompatActivity {
         });
     }
 
-
     public void createList(View v) {
         Call<createListResponse> createList = lists_service.create_list(new getListsRequest(session_api_key));
 
@@ -212,13 +211,12 @@ public class ListActivity extends AppCompatActivity {
             public void onResponse(Response<createListResponse> response) {
                 if (response.isSuccess()) {
                     createListResponse resp = response.body();
-                    //TODO: actually we should go into the new list
                     Toast.makeText(
                             getApplicationContext(),
                             "created list=" + resp.list_id,
                             Toast.LENGTH_LONG)
                             .show();
-                    refreshList(new View(getApplicationContext()));
+                    gotoList(resp.list_id);
                 } else {
                     //TODO: error
                 }
@@ -239,12 +237,50 @@ public class ListActivity extends AppCompatActivity {
 
     public void removeList(View v) {
         String list_id = v.getTag().toString();
-        //TODO
+
+        Call<blankResponse> removeUser = lists_service.remove_user(new removeUserRequest(session_api_key, list_id, email));
+        removeUser.enqueue(new Callback<blankResponse>() {
+            @Override
+            public void onResponse(Response<blankResponse> response) {
+                if(response.isSuccess()) {
+                    //TODO: success.  Toast I guess?
+                } else {
+                    //TODO: error.
+                }
+                refreshList(new View(getApplicationContext()));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Could not connect to server!\n\n"
+                                + "ListActivity().getListsResponse.onFailure():\n"
+                                + t.toString(),
+                        Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
+
     }
 
     public void gotoList(View v) {
-        String list_id = v.getTag().toString();
-        //TODO
+        gotoList(v.getTag().toString());
+    }
+    public void gotoList(String list_id) {
+        Toast.makeText(
+                getApplicationContext(),
+                "going to list=" + list_id,
+                Toast.LENGTH_LONG)
+                .show();
+
+        SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
+        editor.putString("list_id", list_id);
+        editor.commit();
+
+
+        Intent intent = new Intent(this, ListItemsActivity.class);
+        startActivity(intent);
     }
 
     public interface ListsService {
@@ -253,6 +289,9 @@ public class ListActivity extends AppCompatActivity {
 
         @POST("list/create")
         Call<createListResponse> create_list(@Body getListsRequest body);
+
+        @POST("list/removeuser")
+        Call<blankResponse> remove_user(@Body removeUserRequest body);
     }
 
 }
@@ -267,6 +306,22 @@ class createListResponse {
     }
 }
 
+class blankResponse {
+    public String result;
+}
+
+class removeUserRequest {
+    public String session_api_key;
+    public String list_id;
+    public String user_id;
+
+    removeUserRequest (String _session_api_key, String _list_id, String _user_id) {
+        this.session_api_key = _session_api_key;
+        this.list_id = _list_id;
+        this.user_id = _user_id;
+    }
+}
+
 class getListsRequest {
     public String session_api_key;
 
@@ -276,7 +331,6 @@ class getListsRequest {
 }
 
 class getListsResponse {
-    public String result;
     public List<Room> lists = new ArrayList<Room>();
 }
 
