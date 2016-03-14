@@ -73,9 +73,9 @@ public class ListOptionsActivity extends AppCompatActivity{
                 newView = (LinearLayout) convertView;
             }
 
-            ((TextView) findViewById(R.id.member_name)).setText(w.username);
+            ((TextView) newView.findViewById(R.id.member_name)).setText(w.username);
 
-            ImageButton b = (ImageButton)findViewById(R.id.kick_user);
+            ImageButton b = (ImageButton)newView.findViewById(R.id.kick_user);
             b.setTag(w);
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
