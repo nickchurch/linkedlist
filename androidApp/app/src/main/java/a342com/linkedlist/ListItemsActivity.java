@@ -1,7 +1,9 @@
 package a342com.linkedlist;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -25,6 +27,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
+import java.security.SecureRandom;
+import java.math.BigInteger;
 
 import android.widget.EditText;
 
@@ -38,6 +42,10 @@ public class ListItemsActivity extends AppCompatActivity {
     public static String session_api_key = "";
     public static String password = "";
     public static String list_id = "";
+    public static String list_name = "";
+
+    //FIXME
+    public static int item_id_counter = 100;
 
     public ArrayList<listItemElem> listItemElems;
     public MyAdapter2 aa;
@@ -58,7 +66,6 @@ public class ListItemsActivity extends AppCompatActivity {
     private class MyAdapter2 extends ArrayAdapter<listItemElem> {
         int resource;
         Context context;
-        int currentlyFocusedRow;
         List<listItemElem> items;
 
         public MyAdapter2 (Context _context, int _resource, List<listItemElem> _listitems) {
@@ -71,8 +78,6 @@ public class ListItemsActivity extends AppCompatActivity {
 
         @Override
         public View getView (final int position, View convertView, ViewGroup parent) {
-            if (this.items.size() ==0)
-                return null;
             LinearLayout newView;
             listItemElem w = getItem(position);
 
@@ -90,49 +95,18 @@ public class ListItemsActivity extends AppCompatActivity {
             boolean whyJava = (w.checked != 0);
             ((CheckBox) newView.findViewById(R.id.listitem_chk)).setChecked(whyJava);
 
-            ImageButton b = (ImageButton)newView.findViewById(R.id.listitem_remove);
+
+            ImageButton b = (ImageButton) newView.findViewById(R.id.listitem_remove);
             b.setTag(w);
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(
                             getApplicationContext(),
-                            "removing item " + ((listItemElem) v.getTag()).item_id,
+                            "clicked imagebutton " + ((listItemElem) v.getTag()).item_id,
                             Toast.LENGTH_LONG
                     ).show();
-                    removeItem(v);
-                }
-            });
-
-            CheckBox c = (CheckBox)newView.findViewById(R.id.listitem_chk);
-            c.setTag(w);
-            c.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(
-                            getApplicationContext(),
-                            "item " + ((listItemElem) v.getTag()).item_id + " is now " + ((listItemElem)v.getTag()).item_id,
-                            Toast.LENGTH_LONG
-                    ).show();
-                    updateItem(v);
-                }
-            });
-
-            EditText txt = (EditText)newView.findViewById(R.id.listitem_value);
-            txt.setTag(w);
-            txt.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus && (currentlyFocusedRow == position)) {
-                        Toast.makeText(
-                                getApplicationContext(),
-                                "item " + ((listItemElem) v.getTag()).item_id + "changed to:" + ((listItemElem)v.getTag()).value,
-                                Toast.LENGTH_LONG
-                        ).show();
-                        updateItem(v);
-                    } else {
-                        currentlyFocusedRow = position;
-                    }
+                    //removeItem(v);
                 }
             });
 
@@ -165,9 +139,9 @@ public class ListItemsActivity extends AppCompatActivity {
         session_api_key = prefs.getString("session_api_key", "");
         password = prefs.getString("password", "");
         list_id = prefs.getString("list_id", "");
+        list_name = prefs.getString("list_name", "");
 
-        //TODO: set title to name of room
-        //((CollapsingToolbarLayout)findViewById(R.id.toolbar_layout)).setTitle(username + "'s Lists");
+        ((CollapsingToolbarLayout)findViewById(R.id.item_list_toolbar_layout)).setTitle(list_name);
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -185,9 +159,6 @@ public class ListItemsActivity extends AppCompatActivity {
     }
 
     public void refreshList(View v) {
-        //TODO: preferably add new elements at the top so it looks right after an addItem() call
-        //basically the same as the ListActivity version
-
         aa.clear();
 
         Call<listItemResponse> getItems = items_service.get_items_list(new listItemRequest(session_api_key, list_id));
@@ -238,7 +209,11 @@ public class ListItemsActivity extends AppCompatActivity {
 
         Call<blankResponse> addItem = items_service.add_item_to_list(
                 new listItemRequest(session_api_key, list_id,
-                        new listItemElem("test", "", 0)));
+                        new listItemElem(
+                                (new BigInteger(130, new SecureRandom()).toString(32)),
+                                Integer.toString(item_id_counter),
+                                0)));
+        item_id_counter++;
         addItem.enqueue(new Callback<blankResponse>() {
             @Override
             public void onResponse(Response<blankResponse> response) {

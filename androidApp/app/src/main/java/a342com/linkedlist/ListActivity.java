@@ -88,26 +88,26 @@ public class ListActivity extends AppCompatActivity {
 
             ImageButton b = (ImageButton) newView.findViewById(R.id.room_item_leave);
 
-            b.setTag(w.list_id);
+            b.setTag(w);
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(
                             getApplicationContext(),
-                            "leaving list " + v.getTag().toString(),
+                            "leaving list " + ((RoomElement)v.getTag()).list_id,
                             Toast.LENGTH_LONG
                             ).show();
                     removeList(v);
                 }
             });
 
-            newView.setTag(w.list_id);
+            newView.setTag(w);
             newView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Toast.makeText(
                             getApplicationContext(),
-                            "clicked item " + v.getTag().toString(),
+                            "clicked room " + ((RoomElement)v.getTag()).list_id,
                             Toast.LENGTH_LONG
                     ).show();
                     gotoList(v);
@@ -124,16 +124,6 @@ public class ListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_list);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        /*
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-        */
 
         roomList = new ArrayList<RoomElement>();
         aa = new MyAdapter(this, R.layout.sub_list_element, roomList);
@@ -145,13 +135,13 @@ public class ListActivity extends AppCompatActivity {
         swipeLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
                                             android.R.color.holo_green_light);
         swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override public void onRefresh() {
+            @Override
+            public void onRefresh() {
                 refreshList(new View(getApplicationContext()));
                 swipeLayout.setRefreshing(false);
             }
         });
     }
-
 
     @Override
     protected void onResume() {
@@ -180,7 +170,8 @@ public class ListActivity extends AppCompatActivity {
         refreshList(new View(getApplicationContext()));
     }
 
-    public void refreshList(View v) {
+    public void refreshList(View v) {refreshList();}
+    public void refreshList() {
         aa.clear();
 
         Call<getListsResponse> queryLists = lists_service.get_lists(new getListsRequest(session_api_key));
@@ -231,7 +222,7 @@ public class ListActivity extends AppCompatActivity {
                             "created list=" + resp.list_id,
                             Toast.LENGTH_LONG)
                             .show();
-                    gotoList(resp.list_id);
+                    refreshList();
                 } else {
                     //TODO: error
                 }
@@ -257,7 +248,7 @@ public class ListActivity extends AppCompatActivity {
         removeUser.enqueue(new Callback<blankResponse>() {
             @Override
             public void onResponse(Response<blankResponse> response) {
-                if(response.isSuccess()) {
+                if (response.isSuccess()) {
                     //TODO: success.  Toast I guess?
                 } else {
                     //TODO: error.
@@ -280,17 +271,16 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public void gotoList(View v) {
-        gotoList(v.getTag().toString());
-    }
-    public void gotoList(String list_id) {
+        RoomElement roomEntering = (RoomElement) v.getTag();
         Toast.makeText(
                 getApplicationContext(),
-                "going to list=" + list_id,
+                "going to list=" + roomEntering.list_name,
                 Toast.LENGTH_LONG)
                 .show();
 
         SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
-        editor.putString("list_id", list_id);
+        editor.putString("list_id", roomEntering.list_id);
+        editor.putString("list_name", roomEntering.list_name);
         editor.commit();
 
 
