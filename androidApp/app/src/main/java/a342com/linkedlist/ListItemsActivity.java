@@ -1,5 +1,6 @@
 package a342com.linkedlist;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -7,31 +8,31 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.content.Context;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.GsonConverterFactory;
-import retrofit2.Retrofit;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.GsonConverterFactory;
 import retrofit2.Response;
+import retrofit2.Retrofit;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
-import java.security.SecureRandom;
-import java.math.BigInteger;
-
-import android.widget.EditText;
 
 public class ListItemsActivity extends AppCompatActivity {
 
@@ -69,7 +70,7 @@ public class ListItemsActivity extends AppCompatActivity {
         Context context;
         List<listItemElem> items;
 
-        public MyAdapter2 (Context _context, int _resource, List<listItemElem> _listitems) {
+        public MyAdapter2(Context _context, int _resource, List<listItemElem> _listitems) {
             super(_context, _resource, _listitems);
             resource = _resource;
             context = _context;
@@ -78,7 +79,7 @@ public class ListItemsActivity extends AppCompatActivity {
         }
 
         @Override
-        public View getView (final int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
             LinearLayout newView;
             listItemElem w = getItem(position);
 
@@ -107,9 +108,9 @@ public class ListItemsActivity extends AppCompatActivity {
                         */
 
                         listItemElem new_elem = new listItemElem(
-                                ((EditText)v.findViewById(R.id.listitem_value)).getText().toString(),
-                                ((listItemElem)v.getTag()).id,
-                                ((listItemElem)v.getTag()).checked
+                                ((EditText) v.findViewById(R.id.listitem_value)).getText().toString(),
+                                ((listItemElem) v.getTag()).id,
+                                ((listItemElem) v.getTag()).checked
                         );
                         v.setTag(new_elem);
                         updateItem(v);
@@ -142,9 +143,9 @@ public class ListItemsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     listItemElem new_elem = new listItemElem(
-                            ((listItemElem)v.getTag()).value,
-                            ((listItemElem)v.getTag()).id,
-                            (((CheckBox)v.findViewById(R.id.listitem_chk)).isChecked())?1:0
+                            ((listItemElem) v.getTag()).value,
+                            ((listItemElem) v.getTag()).id,
+                            (((CheckBox) v.findViewById(R.id.listitem_chk)).isChecked()) ? 1 : 0
                     );
                     v.setTag(new_elem);
                     updateItem(v);
@@ -192,7 +193,7 @@ public class ListItemsActivity extends AppCompatActivity {
         list_id = prefs.getString("list_id", "");
         list_name = prefs.getString("list_name", "");
 
-        ((CollapsingToolbarLayout)findViewById(R.id.item_list_toolbar_layout)).setTitle(list_name);
+        ((CollapsingToolbarLayout) findViewById(R.id.item_list_toolbar_layout)).setTitle(list_name);
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -268,7 +269,10 @@ public class ListItemsActivity extends AppCompatActivity {
             }
         });
 
-        try {Thread.sleep(100);} catch (InterruptedException e) {}
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
         refreshList(v);
     }
 
@@ -326,7 +330,10 @@ public class ListItemsActivity extends AppCompatActivity {
             }
         });
 
-        try {Thread.sleep(100);} catch (InterruptedException e) {}
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+        }
         refreshList(v);
     }
 
@@ -362,7 +369,7 @@ class removeItemRequest {
     public String list_id;
     public String item_id;
 
-    removeItemRequest (String _session_api_key, String _list_id, String _item_id) {
+    removeItemRequest(String _session_api_key, String _list_id, String _item_id) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.item_id = _item_id;
@@ -388,13 +395,13 @@ class listItemRequest {
     public String list_id;
     public ListItemsActivity.listItemElem item;
 
-    listItemRequest (String _session_api_key, String _list_id, ListItemsActivity.listItemElem _item) {
+    listItemRequest(String _session_api_key, String _list_id, ListItemsActivity.listItemElem _item) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.item = _item;
     }
 
-    listItemRequest (String _session_api_key, String _list_id) {
+    listItemRequest(String _session_api_key, String _list_id) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.item = null;

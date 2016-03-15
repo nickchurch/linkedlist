@@ -9,14 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +31,7 @@ import retrofit2.http.POST;
 /**
  * Created by Josh Shih on 3/13/2016.
  */
-public class ListOptionsActivity extends AppCompatActivity{
+public class ListOptionsActivity extends AppCompatActivity {
 
     public static String LOG_TAG = "My log tag";
     public static final String MY_PREFS_NAME = "MyPrefsFile";
@@ -52,7 +50,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         public String value;
         public String member_id;
 
-        MemberList (String _value, String _member_id) {
+        MemberList(String _value, String _member_id) {
             this.value = _value;
             this.member_id = _member_id;
         }
@@ -62,7 +60,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         int resource;
         Context context;
 
-        public MyAdapter (Context _context, int _resource, List<MemberList> _memberList) {
+        public MyAdapter(Context _context, int _resource, List<MemberList> _memberList) {
             super(_context, _resource, _memberList);
             resource = _resource;
             context = _context;
@@ -70,7 +68,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         }
 
         @Override
-        public View getView (int position, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, ViewGroup parent) {
             LinearLayout newView;
             MemberList w = getItem(position);
 
@@ -85,7 +83,7 @@ public class ListOptionsActivity extends AppCompatActivity{
 
             ((EditText) findViewById(R.id.listitem_value)).setText(w.value);
 
-            ImageButton b = (ImageButton)findViewById(R.id.listitem_remove);
+            ImageButton b = (ImageButton) findViewById(R.id.listitem_remove);
             b.setTag(w);
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -198,16 +196,17 @@ public class ListOptionsActivity extends AppCompatActivity{
         //send add_item to server with "empty" item
         //refresh
     }
+
     public interface ListService {
         @POST("list/adduser")
         Call<blankResponse> add_member(@Body listMemberRequest body);
+
         @POST("list/list_members")
         Call<getListsResponse> get_list_members(@Body listMemberRequest body);
+
         @POST("list/removeuser")
         Call<blankResponse> remove_member(@Body removeMemberRequest body);
     }
-
-
 
 
 }
@@ -217,7 +216,7 @@ class removeMemberRequest {
     public String list_id;
     public String user_id;
 
-    removeMemberRequest (String _session_api_key, String _list_id, String _user_id) {
+    removeMemberRequest(String _session_api_key, String _list_id, String _user_id) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.user_id = _user_id;
@@ -229,7 +228,7 @@ class listMemberRequest {
     public String list_id;
     public ListOptionsActivity.MemberList item;
 
-    listMemberRequest (String _session_api_key, String _list_id, ListOptionsActivity.MemberList _member) {
+    listMemberRequest(String _session_api_key, String _list_id, ListOptionsActivity.MemberList _member) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.item = _member;

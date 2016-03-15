@@ -2,23 +2,20 @@ package a342com.linkedlist;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.logging.Handler;
-
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.GsonConverterFactory;
-import retrofit2.Retrofit;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.GsonConverterFactory;
 import retrofit2.Response;
+import retrofit2.Retrofit;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
@@ -48,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         Log.i(LOG_TAG, "Checking for previous login:" + session_api_key);
 
@@ -78,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
 
         SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
         editor.putString("session_api_key", session_api_key);
@@ -105,11 +102,11 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.layout_login).setVisibility(View.VISIBLE);
         findViewById(R.id.layout_create).setVisibility(View.GONE);
 
-        ((EditText)findViewById(R.id.login_edt_password)).setText("");
-        ((EditText)findViewById(R.id.login_edt_email)).setText("");
-        ((EditText)findViewById(R.id.create_edt_nickname)).setText("");
-        ((EditText)findViewById(R.id.create_edt_email)).setText("");
-        ((EditText)findViewById(R.id.create_edt_password)).setText("");
+        ((EditText) findViewById(R.id.login_edt_password)).setText("");
+        ((EditText) findViewById(R.id.login_edt_email)).setText("");
+        ((EditText) findViewById(R.id.create_edt_nickname)).setText("");
+        ((EditText) findViewById(R.id.create_edt_email)).setText("");
+        ((EditText) findViewById(R.id.create_edt_password)).setText("");
     }
 
     public void login_login(View v) {
@@ -218,9 +215,9 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(
                 getApplicationContext(),
                 "session_api_key=" + session_api_key
-                    + "\nemail=" + email
-                    + "\nusername=" + username
-                    + "\npassword=" + password,
+                        + "\nemail=" + email
+                        + "\nusername=" + username
+                        + "\npassword=" + password,
                 Toast.LENGTH_LONG)
                 .show();
 
@@ -278,7 +275,7 @@ class CreateRequest {
     public String password;
     public String password_conf;
 
-    CreateRequest (String _username, String _email, String _password) {
+    CreateRequest(String _username, String _email, String _password) {
         this.username = _username;
         this.email_address = _email;
         this.password = _password;
