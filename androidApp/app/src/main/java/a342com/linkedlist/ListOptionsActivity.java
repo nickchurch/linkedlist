@@ -35,7 +35,7 @@ import retrofit2.http.POST;
 /**
  * Created by Josh Shih on 3/13/2016.
  */
-public class ListOptionsActivity extends AppCompatActivity{
+public class ListOptionsActivity extends AppCompatActivity {
 
     public static String LOG_TAG = "My log tag";
     public static final String MY_PREFS_NAME = "MyPrefsFile";
@@ -55,7 +55,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         int resource;
         Context context;
 
-        public MyAdapter (Context _context, int _resource, List<memberList> _memberList) {
+        public MyAdapter(Context _context, int _resource, List<memberList> _memberList) {
             super(_context, _resource, _memberList);
             resource = _resource;
             context = _context;
@@ -63,7 +63,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         }
 
         @Override
-        public View getView (int position, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, ViewGroup parent) {
             LinearLayout newView;
             memberList w = getItem(position);
 
@@ -78,7 +78,7 @@ public class ListOptionsActivity extends AppCompatActivity{
 
             ((TextView) newView.findViewById(R.id.member_name)).setText(w.username);
 
-            if(email.equals(w.email)) {
+            if (email.equals(w.email)) {
                 ImageButton b = (ImageButton) newView.findViewById(R.id.kick_user);
                 b.setVisibility(View.GONE);
             } else {
@@ -129,7 +129,7 @@ public class ListOptionsActivity extends AppCompatActivity{
         list_name = prefs.getString("list_name", "");
 
         String t = list_name + "'s Options";
-        ((CollapsingToolbarLayout)findViewById(R.id.list_options_toolbar_layout)).setTitle(t);
+        ((CollapsingToolbarLayout) findViewById(R.id.list_options_toolbar_layout)).setTitle(t);
         //TODO: set title to name of room
         //((CollapsingToolbarLayout)findViewById(R.id.toolbar_layout)).setTitle(username + "'s Lists");
 
@@ -261,11 +261,14 @@ public class ListOptionsActivity extends AppCompatActivity{
         alert.show();
 
     }
+
     public interface ListService {
         @POST("list")
         Call<listItemResponse> get_list(@Body listItemRequest body);
+
         @POST("list/adduser")
         Call<blankResponse> add_member(@Body addMemberRequest body);
+
         @POST("list/removeuser")
         Call<blankResponse> remove_member(@Body removeMemberRequest body);
     }
@@ -300,7 +303,7 @@ class listMemberRequest {
     public String list_id;
     public memberList member;
 
-    listMemberRequest (String _session_api_key, String _list_id, memberList _member) {
+    listMemberRequest(String _session_api_key, String _list_id, memberList _member) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.member = _member;
