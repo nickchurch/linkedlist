@@ -22,7 +22,7 @@ import hashlib
 import time
 
 # config
-DATABASE = 'C:\Users\drdeg\Desktop\linkedlist\server\linkedlist.db'
+DATABASE = 'linkedlist.db'
 DEBUG = True
 SECRET_KEY = 'secret'
 USERNAME = 'admin'
