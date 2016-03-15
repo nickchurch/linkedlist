@@ -1,33 +1,39 @@
 package a342com.linkedlist;
 
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.content.Context;
+import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Retrofit;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.GsonConverterFactory;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
@@ -59,7 +65,7 @@ public class ListActivity extends AppCompatActivity {
         int resource;
         Context context;
 
-        public MyAdapter(Context _context, int _resource, List<RoomElement> _rooms) {
+        public MyAdapter (Context _context, int _resource, List<RoomElement> _rooms) {
             super(_context, _resource, _rooms);
             resource = _resource;
             context = _context;
@@ -67,7 +73,7 @@ public class ListActivity extends AppCompatActivity {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView (int position, View convertView, ViewGroup parent) {
             LinearLayout newView;
             RoomElement w = getItem(position);
 
@@ -91,9 +97,9 @@ public class ListActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Toast.makeText(
                             getApplicationContext(),
-                            "leaving list " + ((RoomElement) v.getTag()).list_id,
+                            "leaving list " + ((RoomElement)v.getTag()).list_id,
                             Toast.LENGTH_LONG
-                    ).show();
+                            ).show();
                     removeList(v);
                 }
             });
@@ -104,7 +110,7 @@ public class ListActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Toast.makeText(
                             getApplicationContext(),
-                            "clicked room " + ((RoomElement) v.getTag()).list_id,
+                            "clicked room " + ((RoomElement)v.getTag()).list_id,
                             Toast.LENGTH_LONG
                     ).show();
                     gotoList(v);
@@ -130,7 +136,7 @@ public class ListActivity extends AppCompatActivity {
 
         final SwipeRefreshLayout swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light);
+                                            android.R.color.holo_green_light);
         swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -150,7 +156,7 @@ public class ListActivity extends AppCompatActivity {
         session_api_key = prefs.getString("session_api_key", "");
         password = prefs.getString("password", "");
 
-        ((CollapsingToolbarLayout) findViewById(R.id.toolbar_layout)).setTitle(username + "'s Lists");
+        ((CollapsingToolbarLayout)findViewById(R.id.toolbar_layout)).setTitle(username + "'s Lists");
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -167,14 +173,11 @@ public class ListActivity extends AppCompatActivity {
         refreshList(new View(getApplicationContext()));
     }
 
-    public void refreshList(View v) {
-        refreshList();
-    }
-
+    public void refreshList(View v) {refreshList();}
     public void refreshList() {
         aa.clear();
 
-        Call<getListsResponse> queryLists = lists_service.get_lists(new getListsRequest(session_api_key));
+        Call<getListsResponse> queryLists = lists_service.get_lists(new getListsRequest(session_api_key, ""));
 
         queryLists.enqueue(new Callback<getListsResponse>() {
             @Override
@@ -210,35 +213,61 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public void createList(View v) {
-        Call<createListResponse> createList = lists_service.create_list(new getListsRequest(session_api_key));
 
-        createList.enqueue(new Callback<createListResponse>() {
-            @Override
-            public void onResponse(Response<createListResponse> response) {
-                if (response.isSuccess()) {
-                    createListResponse resp = response.body();
-                    Toast.makeText(
-                            getApplicationContext(),
-                            "created list=" + resp.list_id,
-                            Toast.LENGTH_LONG)
-                            .show();
-                    refreshList();
-                } else {
-                    //TODO: error
-                }
-            }
 
-            @Override
-            public void onFailure(Throwable t) {
-                Toast.makeText(
-                        getApplicationContext(),
-                        "Could not connect to server!\n\n"
-                                + "ListActivity().getListsResponse.onFailure():\n"
-                                + t.toString(),
-                        Toast.LENGTH_LONG)
-                        .show();
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+        alert.setTitle("Add a list");
+        alert.setMessage("Specify a name");
+
+// Set an EditText view to get user input
+        final EditText input = new EditText(this);
+        alert.setView(input);
+
+        alert.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String t = input.getText().toString();
+
+                Call<createListResponse> createList = lists_service.create_list(new getListsRequest(session_api_key, t));
+
+                createList.enqueue(new Callback<createListResponse>() {
+                    @Override
+                    public void onResponse(Response<createListResponse> response) {
+                        if (response.isSuccess()) {
+                            createListResponse resp = response.body();
+                            Toast.makeText(
+                                    getApplicationContext(),
+                                    "created list=" + resp.list_id,
+                                    Toast.LENGTH_LONG)
+                                    .show();
+                        } else {
+                            //TODO: error
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Toast.makeText(
+                                getApplicationContext(),
+                                "Could not connect to server!\n\n"
+                                        + "ListActivity().getListsResponse.onFailure():\n"
+                                        + t.toString(),
+                                Toast.LENGTH_LONG)
+                                .show();
+                    }
+                });
+
+                //refresh
+                refreshList(new View(getApplicationContext()));
             }
         });
+
+        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // Canceled.
+            }
+        });
+        alert.show();
     }
 
     public void removeList(View v) {
@@ -305,7 +334,7 @@ class createListResponse {
     public String list_name;
     public String list_id;
 
-    createListResponse(String _id, String _name) {
+    createListResponse (String _id, String _name) {
         this.list_id = _id;
         this.list_name = _name;
     }
@@ -320,7 +349,7 @@ class removeUserRequest {
     public String list_id;
     public String user_id;
 
-    removeUserRequest(String _session_api_key, String _list_id, String _user_id) {
+    removeUserRequest (String _session_api_key, String _list_id, String _user_id) {
         this.session_api_key = _session_api_key;
         this.list_id = _list_id;
         this.user_id = _user_id;
@@ -329,9 +358,10 @@ class removeUserRequest {
 
 class getListsRequest {
     public String session_api_key;
-
-    getListsRequest(String _session_api_key) {
+    public String name;
+    getListsRequest(String _session_api_key, String _name) {
         this.session_api_key = _session_api_key;
+        this.name = _name;
     }
 }
 
@@ -343,7 +373,7 @@ class Room {
     public String list_id;
     public String list_name;
 
-    Room(String _id, String _name) {
+    Room (String _id, String _name) {
         this.list_id = _id;
         this.list_name = _name;
     }
